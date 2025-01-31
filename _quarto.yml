@@ -1,0 +1,31 @@
+url: https://sanduni-p.github.io/IntroR-REDCap/
+project:
+  type: website
+
+website:
+  title: "Analysing REDCap Data using R"
+  navbar:
+    left:
+      - href: index.html
+        text: Home
+      - text: Workshop Materials
+        menu:
+        - text: "Session 1"
+          href: vignettes/Session_1.html
+        - text: "Session 2"
+          href: vignettes/Session_2.html
+format:
+  html:
+    theme: 
+      - cerulean
+      - utils/css/custom.scss
+    toc: true
+    toc-expand: 1
+    toc-title: Contents
+    embed-resources: true
+    css: utils/css/custom.css
+    smooth-scroll: true
+    df-print: kable
+execute: 
+  freeze: auto
+

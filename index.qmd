@@ -1,0 +1,241 @@
+---
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+## Introduction
+
+This workshop is designed for beginners with little to no programming experience who want to learn how to work with REDCap data using R. Whether you are new to R or have some experience with spreadsheets and clinical data, this workshop will guide you through importing, cleaning, analyzing, and visualizing data from REDCap.
+
+We will cover both CSV-based data import and API-based extraction, ensuring that you can access REDCap data in a reproducible way. The workshop will cover essential programming concepts and gradually introduce more advanced topics, with a focus on using the `tidyREDCap`, `tidyverse`, `ggplot2`, and `tableone` packages to manage, explore, summarize and visualize your datasets. The aim of this workshop is equip participants with the skills to import, clean, analyze, and visualize REDCap data in R.
+
+## Learning Objectives
+
+Participants will gain the following skills:
+
+- Proficiency in using R and RStudio for data analysis.
+- Basic R programming skills.
+- Connect to REDCap using API tokens and securely retrieve data.
+- Import and clean REDCap data in R using `tidyREDCap` and `tidyverse`.
+- Preprocess data, manage missing values, and reshape datasets.
+- Create visualizations using `ggplot2` to explore trends in clinical data.
+- Generate a Table 1 summary for clinical reports.
+
+## Prerequisites
+
+Before starting this course you will need to ensure that your computer is set up with the required software. If you have any difficulty installing any of this software then please contact one of the trainers for help.
+
+### Installing R and RStudio
+
+**R** and **RStudio** are separate downloads and installations.
+
+**R** is the underlying statistical computing environment. The base R system and a very large collection of packages that give you access to a huge range of statistical and analytical functionality are available from [CRAN](https://cran.r-project.org), the Comprehensive R Archive
+Network.
+
+However, using R alone is no fun. **RStudio** is a graphical integrated development environment (IDE) that makes using R much easier and more interactive. You need to install R before you install RStudio.
+
+```{=html}
+<details>
+<summary style="color: #4492B4; font-weight: 600;" >
+Windows
+</summary>
+```
+
+-   **If you already have R and RStudio installed:**
+
+    -   Open RStudio, and click on "Help" \> "Check for updates". If a new version is available, quit RStudio, and download the latest version for RStudio.
+    -   To check which version of R you are using, start RStudio and the first thing that appears in the console indicates the version of R you are running. Alternatively, you can type `sessionInfo()`, which will also display which version of R you are running. Go on the [CRAN website](https://cran.r-project.org/bin/windows/base/) and check whether a more recent version is available. If so, please download and install it. You can [check here](https://cran.r-project.org/bin/windows/base/rw-FAQ.html#How-do-I-UNinstall-R_003f) for more information on how to remove old versions from your system if you wish to do so.
+
+- **If you don't have R and RStudio installed:**
+
+  - Download R from the [CRAN website](https://cran.r-project.org/bin/windows/base/release.htm).
+  - Run the `.exe` file that was just downloaded
+  - Go to the [RStudio download page](https://www.rstudio.com/products/rstudio/download/#download)
+  - Under *Installers* select **RStudio x.yy.zzz - Windows 10/8/7** where x, y, and z represent version numbers)
+  - Double click the file to install it
+  - Once it's installed, open RStudio to make sure it works and you don't get any error messages.
+
+
+```{=html}
+</details>
+```
+
+```{=html}
+<details>
+<summary style="color: #4492B4; font-weight: 600;" >macOS</summary>
+```
+
+- **If you already have R and RStudio installed:**
+
+  - Open RStudio, and click on "Help" \> "Check for updates". If a new version is available, quit RStudio, and download the latest version for RStudio.
+  - To check the version of R you are using, start RStudio and the first thing that appears on the terminal indicates the version of R you are running. Alternatively, you can type `sessionInfo()`, which will also display which version of R you are running. Go on the [CRAN website](https://cran.r-project.org/bin/macosx/) and check whether a more recent version is available. If so, please download and install it.
+
+- **If you don't have R and RStudio installed:**
+
+  - Download R from the [CRAN website](https://cran.r-project.org/bin/macosx/).
+  - Select the `.pkg` file for the latest R version
+  - Double click on the downloaded file to install R
+  - It is also a good idea to install [XQuartz](https://www.xquartz.org/) (needed by some packages)
+  - Go to the [RStudio download page](https://www.rstudio.com/products/rstudio/download/#download)
+  - Under *Installers* select **RStudio x.yy.zzz - Mac OS X 10.6+ (64-bit)** (where x, y, and z represent version numbers)
+  - Double click the file to install RStudio
+  - Once it's installed, open RStudio to make sure it works and you don't get any error messages.
+
+```{=html}
+</details>
+```
+
+```{=html}
+<details>
+<summary style="color: #4492B4; font-weight: 600;" >
+Linux
+</summary>
+```
+
+- Follow the instructions for your distribution from  [CRAN](https://cloud.r-project.org/bin/linux), they provide information to get the most recent version of R for common distributions. For most distributions, you could use your package manager (e.g., for Debian/Ubuntu run `sudo apt-get install r-base`, and for Fedora `sudo yum install R`), but we don't recommend this approach as the versions provided by this are usually out of date. In any case, make sure you have at least R 4.3.2.
+- Go to the [RStudio download page](https://www.rstudio.com/products/rstudio/download/#download)
+- Under *Installers* select the version that matches your distribution, and install it with your preferred method (e.g., with Debian/Ubuntu `sudo dpkg -i   rstudio-x.yy.zzz-amd64.deb` at the terminal).
+- Once it's installed, open RStudio to make sure it works and you don't get any error messages.
+
+```{=html}
+</details>
+```
+
+### Installing R Packages
+
+On this course we will be making use of a collection of packages designed for data science called the **`tidyverse`** that make it much easier and more fun to work with your data. After installing R and RStudio, follow the instructions below to
+install the `tidyverse` package suite.
+
+- After starting RStudio, at the console type: `install.packages("tidyverse")` (look for the 'Console' tab and type at the `>` prompt)
+- You can also do this by going to Tools -\> Install Packages and typing the names of the packages separated by a comma.
+
+### Installing Quarto
+
+To install Quarto follow this link: (https://quarto.org/docs/get-started/)[https://quarto.org/docs/get-started/]. 
+
+## Data
+
+
+
+## Into the tidyverse
+
+The core tidyverse includes the packages that you're likely to use in
+everyday data analyses. Therefore, this workshop offers an introduction
+to these core packages. As of tidyverse 1.3.0, the following packages
+are included in the core tidyverse:
+
+::: {#fig-datatypes}
+![](vignettes/images/tidyverse-packages.png){fig-align="center"}
+
+Hex logos for the eight core tidyverse packages and their primary
+purposes. Image
+source:<https://education.rstudio.com/blog/2020/07/teaching-the-tidyverse-in-2020-part-1-getting-started/>
+:::
+
+- [**ggplot2**](https://ggplot2.tidyverse.org/): *Grammar of Graphics.* Enables the creation of graphics in a declarative manner.
+- [**dplyr**](https://dplyr.tidyverse.org/): *Grammar for data manipulation*. Presents a set of verbs to address common challenges in data manipulation.
+- [**tidyr**](https://tidyr.tidyverse.org/): Provides a collection of functions for achieving tidy data.
+- [**readr**](https://readr.tidyverse.org/): Facilitates the rapid and user-friendly reading of rectangular data (e.g., csv, tsv, and fwf).
+- [**purrr**](https://purrr.tidyverse.org/): *Functional programming toolkit.* Offers a set of tools for efficient work with functions and vectors.
+- [**tibble**](https://tibble.tidyverse.org/): *Tibbles*, a modern re-imagining of the data frame, offering a more user-friendly and efficient approach to handling tabular data.
+- [**stringr**](https://stringr.tidyverse.org/): Provides a set of functions designed to simplify and enhance string manipulations.
+- [**forcats**](https://forcats.tidyverse.org/):  Provides a suite of useful tools for handling and manipulating categorical variables (*factors*).
+
+## Credits and Acknowledgement
+
+These content were adapted from the following course materials:
+
+ - [R for Data Science book](https://r4ds.had.co.nz/index.html)
+ - [OHI Data Science Training](http://ohi-science.org/data-science-training/index.html)
+ - [Data Carpentry](https://datacarpentry.org)
+ - [WEHI tidyr coursebook](https://bookdown.org/ansellbr/WEHI_tidyR_course_book/) by Brendan R. E. Ansell
+ - content developed by Maria Doyle.
+
+------------------------------------------------------------------------
+
+
+
+Workshop Outline: Analysing a REDCap Dataset in R with tidyREDCap
+
+Audience: Clinicians with little to no programming experience (very beginners)
+Duration: 2 sessions of 2.5 hours each (including a 15-minute break per session)
+
+Session 1: Introduction to R and Handling REDCap Data
+
+1. Welcome and Workshop Overview (15 min)
+	•	Introduction to the workshop and objectives
+	•	Overview of R and RStudio interface
+	•	Understanding R scripts and the console
+
+2. Importing REDCap Data via API with tidyREDCap (60 min)
+	•	Understanding API access in REDCap
+	•	What is an API, and why use it?
+	•	REDCap API tokens: how to request one
+	•	Setting API permissions in REDCap
+	•	Using tidyREDCap to Connect to REDCap
+	•	Loading required libraries (tidyREDCap, REDCapR, httr)
+	•	Setting up API tokens securely
+	•	Importing data using redcap_project_info() and redcap_read_oneshot()
+	•	Handling longitudinal and repeated measures data
+	•	Handling API responses
+	•	Checking for errors in API calls
+	•	Understanding data formats returned (JSON, CSV)
+
+💡 Break (15 min)
+
+3. Importing Data from CSV and Other Formats (45 min)
+	•	Importing data from CSV (read_csv())
+	•	Importing Excel files (readxl::read_excel())
+	•	Exporting cleaned data (write_csv(), write_xlsx())
+
+4. Viewing and Exploring the Data (40 min)
+	•	Using head(), str(), and summary() to inspect datasets
+	•	Checking for missing values (is.na(), sum(is.na()))
+	•	Exploring dataset structure with View(), glimpse()
+	•	Understanding common REDCap variable formats
+	•	Using tidyREDCap::label_variables() to retrieve metadata
+
+Session 2: Data Cleaning, Preprocessing, and Visualization
+
+1. Data Cleaning and Tidying with tidyREDCap (50 min)
+	•	Renaming columns for readability (rename())
+	•	Handling missing data (drop_na(), replace_na())
+	•	Converting REDCap checkbox variables (tidyREDCap::redcap_checkbox_to_long())
+	•	Standardizing variable types (mutate(), as.factor(), as.numeric())
+	•	Selecting and filtering relevant data (select(), filter())
+
+💡 Break (15 min)
+
+2. Data Preprocessing (40 min)
+	•	Creating new variables (mutate(), case_when())
+	•	Recoding categorical variables (recode(), factor())
+	•	Merging datasets (left_join(), bind_rows())
+	•	Reshaping long/wide format (pivot_longer(), pivot_wider())
+
+3. Data Visualization with ggplot2 (40 min)
+	•	Introduction to ggplot2
+	•	Creating basic plots:
+	•	Histograms (geom_histogram())
+	•	Boxplots (geom_boxplot())
+	•	Scatter plots (geom_point())
+	•	Bar charts (geom_bar())
+	•	Customizing plots (titles, axes, colors)
+
+4. Creating a Summary Table (Table 1) (30 min)
+	•	Importance of Table 1 in clinical research
+	•	Using tableone to generate descriptive statistics
+	•	Formatting and exporting summary tables (CreateTableOne(), flextable)
+
+5. Q&A and Next Steps (20 min)
+	•	Common errors and troubleshooting
+	•	Where to find help (Cheat sheets, R documentation, online forums)
+	•	Additional resources for self-learning
+
+Workshop Format
+	•	Hands-on coding exercises with guided instructions
+	•	Real-world clinical dataset examples from REDCap
+	•	Interactive Q&A and troubleshooting sessions
+	•	Take-home exercises and reference materials
+
+Does this structure align with your workshop goals? Let me know if you’d like any refinements!
