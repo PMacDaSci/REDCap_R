@@ -1,6 +1,5 @@
----
-title: "Basics of R Programming Language"
----
+
+# Basics of R Programming Language
 
 ## R!
 
@@ -569,6 +568,12 @@ Alternatively, you can click the broom icon in RStudio's Environment pane to cle
 
 For the sake of reproducibility, it's crucial to regularly delete your objects and restart your R session. This ensures that your analysis can be replicated next week or even after upgrading your operating system. Restarting your R session helps identify and address any dependencies or configurations needed for your analysis to run successfully.
 
+# Case Study: Immunotherapy Dataset
+
+!! TO DO Complete
+
+
+
 # Importing REDCap Data
 
 ## Importing Data via API
@@ -718,5 +723,1150 @@ result
 
 If the request is successful, you should see metadata about your REDCap project as shown above.
 
+```{r}
+library(REDCapTidieR)
+options(redcaptidier.allow.mdc = F)
+immuno <- read_redcap(url, token, raw_or_label = "raw")
+```
+
+# Exploring the Data
+
+The supertibble object can be viewed with the [RStudio Data Viewer](https://cloud.r-project.org/web/packages/REDCapTidieR/vignettes/glossary.html#data-viewer). You can click on the table icon in the Environment tab to view of the supertibble in the data viewer. At a glance you see an overview of the instruments in the REDCap project.
+
+<center>
+
+![Data Viewer showing the `immuno` supertibble](images/supertibble.gif)
+
+</center>
+
+You can drill down into individual tables in the `redcap_data` and `redcap_metadata` columns. Note that in the `demographics` data tibble, each row represents a patient, identified by their `record_id`.
+
+<center>
+
+![Data Viewer showing the `demographics` data tibble](images/data_metadata.gif)
+
+</center>
+
+In the `pet_imaging` data tibble, each row represents a PET scan information of a specific patient. Each row is identified by the combination of `record_id` and `redcap_form_instance`. This difference in [granularity](glossary.html#granularity) is because `pet_imaging` is a [**repeating**](glossary.html#repeating) instrument whereas `demographics` is a [**nonrepeating**](glossary.html#nonrepeating) instrument.
+
+<center>
+
+![Data Viewer showing the `pet_imaging` data tibble](images/repeating.gif)
+
+</center>
+
+You can also explore the metadata tibbles in the `redcap_metadata` column to find out about [field labels](glossary.html#field-label), [field types](glossary.html#field-type), and other field attributes.
+
+<center>
+
+![Data Viewer showing the `demographics` metadata tibble](images/demographics-metadata.gif)
+
+</center>
+
+## Extracting data tibbles from the supertibble
+
+`REDCapTidieR` provides three different functions to extract data tibbles from a supertibble.
+
+### Binding data tibbles into the environment
+
+The `bind_tibbles()` function takes a supertibble and binds its data tibbles directly into the global [environment](glossary.html#environment). When you use `bind_tibbles()` while working interactively in the RStudio IDE, you will see data tibbles appear in the Environment pane.
+
+```{r}
+immuno |> bind_tibbles()
+```
 
 
+<center>
+
+![Demonstration of the `bind_tibbles` function](images/bind-tibble.gif)
+
+</center>
+
+By default, `bind_tibbles()` extracts all data tibbles from the supertibble. With the `tbls` argument you can specify a subset of data tibbles that should be extracted. 
+
+### Extracting a list of data tibbles
+
+The `extract_tibbles()` function takes a supertibble and returns a named list of data tibbles. The default is to extract all data tibbles. We use `str` here to show the structure of the list returned by `extract_tibbles()`.
+
+```{r}
+superheroes_list <- immuno |>
+  extract_tibbles()
+
+superheroes_list |>
+  str(max.level = 1)
+```
+
+## Adding variable labels with the labelled package
+
+`REDCapTidieR` package allows you to attach labels to variables in the supertibble. Variable labels can make data exploration easier. 
+
+```{r}
+immuno |>
+  make_labelled() |>
+  bind_tibbles()
+```
+
+The `make_labelled()` function takes a supertibble and returns a supertibble with variable labels applied to the variables of the supertibble as well as to the variables of all data and metadata tibbles in the `redcap_data` and `redcap_metadata` columns of the supertibble.
+
+<center>
+
+The RStudio Data Viewer shows variable labels below variable names.
+
+![Data Viewer showing part of a labelled supertibble](images/labelled-supertibble.gif)
+
+</center>
+
+You can use the `labelled::look_for()` function to explore the variable labels of a tibble.
+
+```{r}
+labelled::look_for(mortality_data)
+```
+
+These labels are the REDCap **field labels** that prompt data entry in the REDCap instrument. `REDCapTidieR` places them into the `field_label` variable of the instrument's metadata tibble. Below you can see that the field labels of the REDCap instrument for `mortality_data` are the same as the labels above.
+
+<center>
+
+![REDCap data entry view of the `mortality_data` instrument](images/mortality-data-form.png)
+
+</center>
+
+In the `demographics` instrument, a label has a trailing colon `:` (check the label of `autoimmune_disease_select___9` variable below). This won't look good as a variable label so let's remove it. 
+
+```{r}
+labelled::look_for(demographics)
+```
+
+The `make_labelled()` function has a `format_labels` argument that you can use to preprocess labels before applying them to variables.
+
+```{r}
+immuno |>
+  make_labelled(format_labels = ~ gsub(":", "", .)) |>
+  bind_tibbles()
+
+labelled::look_for(demographics, "autoimmune")
+```
+
+This remove all colons in labels. 
+
+To removing trailing `:` characters from a field label `REDCapTidieR` provides a format helper function that you can pass to the `format_labels` argument:
+
+```{r}
+fmt_strip_trailing_colon("Select Autoimmune Disease(s) Other, specify:")
+```
+
+To find out about other helpers included with REDCapTidieR, see `` ?`format-helpers` ``.
+
+The `format_labels` argument will also accept multiple functions in a vector or list. You can pass any function that takes a character vector and returns a modified character vector to `format_labels`. In the following example, we remove the trailing colon with `fmt_strip_trailing_colon()` and then make the labels lower case with `base::tolower()`.
+
+```{r}
+immuno |>
+  make_labelled(
+    format_labels = c(
+      fmt_strip_trailing_colon,
+      base::tolower
+    )
+  ) |>
+  bind_tibbles()
+
+labelled::look_for(demographics)
+```
+
+## Viewing the Data
+
+This section demonstrates different ways to get to know the `immuno` dataset and its instruments. 
+
+When the name of the object is typed, the first few lines along with some information, such as the number of rows are displayed:
+
+```{r}
+#| eval: false
+#| classes: scrolling
+immuno
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+immuno
+```
+
+```{=html}
+</details>
+```
+
+To view any column displayed above in the `immuno` object, you can specify the column number within `[[]]` or column name followed by `$`.
+
+- For example to view column 1:
+
+```{r}
+#| eval: false
+#| classes: scrolling
+immuno[[1]]
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+immuno[[1]]
+```
+
+```{=html}
+</details>
+```
+
+
+- For example to view `redcap_form_name` column:
+
+```{r}
+#| eval: false
+#| classes: scrolling
+immuno$redcap_form_name
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+immuno$redcap_form_name
+```
+
+```{=html}
+</details>
+```
+
+A similar method can be used to access the patient data in all instruments using the `redcap_data` column or the 3rd column in this case. However, this displays patient data of all the instruments one after the other, making it difficult to read. A better way is to view a single instrument as follows.
+
+For example, to view the `mortality_data` instrument, we can access the redcap_data column first (i.e., `immuno$redcap_data` or `immuno[[3]]`) and then access the 15th instrument:
+
+
+```{r}
+#| eval: false
+#| classes: scrolling
+immuno$redcap_data[[15]] # same as immuno[[3]][[15]]
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+immuno$redcap_data[[15]] # same as immuno[[3]][[15]]
+```
+
+```{=html}
+</details>
+```
+
+The `dim()` function prints the dimensions (rows x columns):
+
+```{r}
+dim(immuno)
+```
+
+
+```{r}
+dim(immuno$redcap_data[[15]])
+```
+
+This information is available at the environment pane in the top right panel as the number of observations (rows) and variables (columns).
+
+The `nrow()` function prints the number of rows while `ncol()` prints the number of columns:
+
+```{r}
+nrow(immuno$redcap_data[[15]])
+ncol(immuno$redcap_data[[15]])
+```
+
+
+The `View()` function gives a spreadsheet-like view of the data frame:
+
+```{r}
+#| eval: false
+View(immuno)
+```
+
+By clicking the object on the environment tab also gives a spreadsheet-like view of the object: ![](images/environment-variable.jpg){fig-align="center"}
+
+The `head()` function prints the top 6 rows of a data frame:
+
+```{r}
+#| eval: false
+#| classes: scrolling
+head(immuno$redcap_data[[15]])
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+head(immuno$redcap_data[[15]])
+```
+
+```{=html}
+</details>
+```
+
+Similarly, the `tail()` function prints the bottom 6 rows of the data frame:
+
+```{r}
+#| eval: false
+tail(immuno$redcap_data[[15]])
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+tail(immuno$redcap_data[[15]])
+```
+
+```{=html}
+</details>
+```
+
+The `colnames()` function displays all the column names:
+
+```{r}
+#| classes: scrolling
+colnames(immuno$redcap_data[[15]])
+```
+
+The `$` symbol allows access to individual columns. To display `mortality_date` column:
+
+```{r}
+#| eval: false
+#| classes: scrolling
+immuno$redcap_data[[15]]$mortality_date 
+```
+
+The `str()` function shows the structure of the data:
+
+```{r}
+#| eval: false
+#| classes: scrolling
+str(immuno$redcap_data[[15]])
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+str(immuno$redcap_data[[15]])
+```
+
+```{=html}
+</details>
+```
+
+
+The `glimpse()`function (dplyr package) displays a compact summary of the data frame, showing you key details such as the data types of each column, the first few values, and the total number of observations.
+
+```{r}
+#| eval: false
+glimpse(immuno$redcap_data[[15]])
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+glimpse(immuno$redcap_data[[15]])
+```
+
+```{=html}
+</details>
+```
+
+The `summary()` function generates summary statistics:
+
+```{r}
+#| eval: false
+#| classes: scrolling
+summary(immuno$redcap_data[[15]])
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+summary(immuno$redcap_data[[15]])
+```
+
+```{=html}
+</details>
+```
+
+
+The `glimpse()`function (dplyr package) displays a compact summary of the data frame, showing you key details such as the data types of each column, the first few values, and the total number of observations.
+
+```{r}
+#| eval: false
+glimpse(immuno$redcap_data[[15]])
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+glimpse(immuno$redcap_data[[15]])
+```
+
+```{=html}
+</details>
+```
+
+
+A statitical overview can be obtained using the `skim()` function in skimr package:
+
+```{r}
+#| eval: false
+#| classes: scrolling
+library(skimr)
+skim(immuno$redcap_data[[15]])
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+library(skimr)
+skim(immuno$redcap_data[[15]])
+```
+
+```{=html}
+</details>
+```
+
+## Writing Data to a File
+
+Writing data to a file is a fundamental operation in programming and data analysis. It involves taking data from within a program or environment and storing it in a file on a disk for later use or sharing. This section explains the basics of writing a data file using the **readr** package. 
+
+The `write_csv()` and `write_tsv()` functions are part of the **readr** package, which is designed for writing delimited files like CSV (comma-separated values) and TSV (tab-separated values). These functions are used to write data frames into CSV and TSV files, respectively.
+
+We first provide the variable name of the data frame followed by the file name (ideally including the full folder location). 
+
+To write a CSV file:
+```{r}
+#| eval: false
+# on Mac:
+write_csv(cms_data, "~/Desktop/cms_data.csv")
+
+# on Windows
+write_csv(cms_data, "C:/Users/srajapaksa/Desktop/cms_data.csv")
+```
+
+To write a TSV file:
+```{r}
+#| eval: false
+# on Mac:
+write_tsv(cms_data, "~/Desktop/cms_data.csv")
+
+# on Windows
+write_tsv(cms_data, "C:/Users/srajapaksa/Desktop/cms_data.csv")
+```
+
+# Step 2: Tidy Data
+
+Tidy data is a structured and organized format for presenting data that follows a simple convention: variables are placed in columns, observations are placed in rows and values are placed in cells. This standardized arrangement makes it easy to work with and analyze data efficiently. The principles of tidy data, popularized by Hadley Wickham, are designed to promote consistency and ease of use in data analysis.
+
+![](https://r4ds.hadley.nz/images/tidy-1.png){fig-align="center"}
+
+This is the second step in the tidyverse workflow.
+
+![](images/life-cycle-2.png){fig-align="center"}
+
+Let's take a look at some examples.
+
+Data is often entered in a wide format, where each row typically represents a site, subject, or patient, and there are multiple observation variables containing the same type of data.
+
+For instance, consider the AirPassengers dataset. It contains information on monthly airline passenger numbers from 1949 to 1960. In this dataset, each row corresponds to a single year, and the columns represent each month from January to December.
+
+```{r}
+#| eval: false
+AirPassengers
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+AirPassengers
+```
+
+```{=html}
+</details>
+```
+
+Wide format is intuitive for data entry. But it is less so for data analysis. Consider calculating the monthly mean; where would you place it? Would it be another row?
+
+Data needs to be reshaped to conform to the tidy data structure. It involves using four primary verbs (or pairs of opposites):
+
+-   Convert columns into rows (`pivot_longer()`).
+-   Convert rows into columns (`pivot_wider()`).
+-   Convert a character column into multiple columns (`separate_wider_delim()` and `separate_wider_position()`).
+-   Combine multiple character columns into a single column (`unite()`).
+
+![](images/tidy-data-verbs.png){fig-align="center"}
+
+First, load the `tidyr` package. Since you have already installed the tidyverse, you should be able to load it directly as follows (otherwise install it using the command `install.packages("tidyverse")` if necessary):
+
+```{r}
+library(tidyverse)
+```
+
+## Converting data from wide to long format
+
+First read the counts file called GSE60450_normalized_data.csv that is in a folder called data (i.e. the path to the file should be data/GSE60450_normalized_data.csv).
+
+```{r}
+#| eval: false
+#| classes: scrolling
+#| warning: false
+counts <- read_csv("data/GSE60450_normalized_data.csv")
+head(counts)
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+#| warning: false
+counts <- read_csv("data/GSE60450_normalized_data.csv")
+head(counts)
+```
+
+```{=html}
+</details>
+```
+
+To transform this table from a wide format to a long format, we use the `pivot_longer()` function. It's important to note that this function does not create tidy data as it duplicates rows. However, the output in 'long format' from `pivot_longer()` is often necessary for ggplot, where each aesthetic or facet category must be a single column of values and for `left_join()`, which will be introduced later.
+
+This operation will convert multiple columns with counts for each sample into a single column containing all the expression values, as illustrated in the image below.
+
+![](images/piv-long.png){fig-align="center"} The `pivot_longer()` function takes three arguments:
+
+1.  **cols =** : a vector indicating the names of the columns to be converted into labels in long form.
+2.  **names_to =** : a name or vector of names for the new column(s) containing the labels from the specified columns.
+3.  \*\*values_to =\* \*: a name for the new column containing the values corresponding to the specified columns.
+
+It's important to note that when using `pivot_wider()`, the new column names need to be enclosed in quotes.
+
+```{r}
+seqdata <- counts |> 
+  pivot_longer(cols = starts_with("GSM"), 
+               names_to = "Sample", 
+               values_to = "Count")
+```
+
+The `cols = starts_with("GSM")` command returns a vector of columns whose names starts with "GSM". `pivot_longer()` will then transform the those columns into two new columns, denoted as "Sample" and "Count." The parameter `names_to = "Sample"` indicates that the new column containing the specified columns (defined by cols) should be named "Sample," while `values_to = "Count"` specifies that the new column containing the values should be named "Count."
+
+```{r}
+#| eval: false
+#| classes: scrolling
+seqdata
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+seqdata
+```
+
+```{=html}
+</details>
+```
+
+Alternatively, we could achieve the same outcome by specifying a column range using the following command:
+
+```{r}
+seqdata <- counts |> 
+  pivot_longer(cols = GSM1480291:GSM1480302, 
+               names_to = "Sample", 
+               values_to = "Count")
+```
+
+We can also specify the columns we don't want to reformat, and `pivot_longer()` will then reformat all the columns except those. To achieve this, we place a minus sign ("-") in front of the column names that we wish to exclude. This is a commonly used approach with `pivot_longer()`, as it can be more convenient to exclude columns we don't need rather than explicitly include the ones we want.
+
+```{r}
+seqdata <- counts |> 
+  pivot_longer(cols = -c(X, gene_symbol), 
+               names_to = "Sample", 
+               values_to = "Count")
+```
+
+## Converting data from long to wide format
+
+First, read the annotation file called GSE60450_annotation.csv (the path to the file should be data/GSE60450_annotation.csv).
+
+```{r}
+#| eval: false
+#| classes: scrolling
+#| warning: false
+annot <- read_csv("data/GSE60450_annotation.csv")
+head(annot)
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+#| warning: false
+annot <- read_csv("data/GSE60450_annotation.csv")
+head(annot)
+```
+
+```{=html}
+</details>
+```
+
+To transform this table so that it conforms to the tidy principles, we use the `pivot_wider()` function.
+
+This operation will convert multiple rows with type and annotation into columns containing the Symbol and Gene_name, as illustrated in the image below.
+
+![](images/piv-wide.png){fig-align="center"}
+
+The `pivot_wider()` function takes two arguments:
+
+1.  **names_from =** : a name or a vector of names of column(s) containing the labels that will be transformed into the new column names.
+2.  **values_from =** : a name or a vector of names of column(s) containing the values that will fill the new columns.
+
+In our scenario, to reshape the annot data frame, we will use the column names Type and Annotation:
+
+```{r}
+annot_tidy <- annot |> 
+  pivot_wider(names_from = Type, 
+              values_from = Annotation)
+```
+
+The above operation changes the 'shape' of the dataframe from a longer format (more rows) to a wider format (more columns). While the original table consists of 40 rows, using `pivot_wider()` results in only 20 rows. This reduction is due to the de-duplication of rows during the creation of new columns.
+
+```{r}
+#| eval: false
+#| classes: scrolling
+annot_tidy
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+annot_tidy
+```
+
+```{=html}
+</details>
+```
+
+It's important to note that since we only have two distinct labels in the Type column, we are essentially replacing the existing two columns with just two new columns. Consequently, the shape of the output doesn't technically become wider than the input data frame. However, when there are more than two unique labels in the names_from column, the output will indeed become wider compared to the input.
+
+## Separating Columns
+
+First, read the metadata file called GSE60450_metadata.csv (the path to the file should be data/GSE60450_metadata.csv).
+
+```{r}
+#| eval: false
+#| classes: scrolling
+#| warning: false
+metadata <- read_csv("data/GSE60450_metadata.csv")
+head(metadata)
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+#| warning: false
+metadata <- read_csv("data/GSE60450_metadata.csv")
+head(metadata)
+```
+
+```{=html}
+</details>
+```
+
+To transform this table so that it conforms to the tidy principles, we use the `separate_wider_position()`/`separate_wider_delim()` function. This operation will separate characteristic column into 3 separate columns containing the tissue_type, immunophenotype and development_stage, as illustrated in the image below.
+
+![](images/separate.png){fig-align="center"}
+
+The `separate_wider_delim()` function takes three arguments:
+
+1.  **cols =** : a name or a vector of names of the column(s) that requires separation into multiple columns.
+2.  **delim =** : delimeter (or separator) between values. This is same as the `delim =` in `read_delim()`.
+3.  **names =** : a vector containing column names for the the new columns.
+
+To separate characteristic column in the metadata data frame into three separate columns based on the delimeter ; (semi colon), we can use the `separate_wider_delim()` function:
+
+```{r}
+#| eval: false
+#| classes: scrolling
+metadata_lform <- metadata |> 
+  separate_wider_delim(cols = characteristics, 
+                       delim =";",
+                       names = c("tissue_type", "immunophenotype", "development_stage"))
+metadata_lform
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+metadata_lform <- metadata |> 
+  separate_wider_delim(cols = characteristics, 
+                       delim =";",
+                       names = c("tissue_type", "immunophenotype", "development_stage"))
+metadata_lform
+```
+
+```{=html}
+</details>
+```
+
+The `separate_wider_position()` function splits at fixed widths and takes two arguments:
+
+1.  **cols =** : a name or a vector of names of the column(s) that requires separation into multiple columns.
+2.  **widths =** : a named vector containing numbers where the names become the new column names and values specify the column widths.
+
+For instance, we can divide the gene_id column into three separate columns to evaluate the functionality of this operation (this is provided purely as an example):
+
+```{r}
+#| eval: false
+#| classes: scrolling
+metadata_lform |> 
+  separate_wider_position(cols = gene_id, 
+                          widths = c(code = 3, prefix = 4, id = 3))
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+metadata_lform |> 
+  separate_wider_position(cols = gene_id, 
+                          widths = c(code = 3, prefix = 4, id = 3))
+```
+
+```{=html}
+</details>
+```
+
+## Uniting Columns
+
+The `unite()` function is the complement of `separate()`. Therefore, let's revert what we did in the previous section to combine multiple columns to a single column as illustrated in the image below.
+
+![](images/unite.png){fig-align="center"}
+
+The `unite()` function takes three arguments:
+
+1.  **col =** : name of the new column that will contain the united values.
+2.  **... =** : a vector containing column names to unite.
+3.  **sep =** : delimeter (or separator) this is same as the `delim =` in `read_delim()`. If we don't specify a separator to insert between the combined values, they will be separated by \_ (underscores).
+
+To separate characteristic column in the metadata data frame into three separate columns:
+
+```{r}
+#| eval: false
+#| classes: scrolling
+metadata_lform |> 
+  unite(col = characteristics, 
+        tissue_type, immunophenotype, development_stage,
+        sep = ",")
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+metadata_lform |> 
+  unite(col = characteristics, 
+        tissue_type, immunophenotype, development_stage,
+        sep = ",")
+```
+
+```{=html}
+</details>
+```
+
+## Missing Values
+
+A value can be missing in one of two possible ways:
+
+-   Explicitly, meaning it is flagged with NA.
+-   Implicitly, implying that it is just not present in the data.
+
+Let's illustrate this idea with a very simple data frame:
+
+```{r}
+#| eval: false
+#| classes: scrolling
+covid_vac <- data.frame(
+    year = c(2020, 2020, 2021, 2021, 2021,  2023, 2023,
+             2023, 2024, 2024), 
+    vaccine_type = c("Pfizer", "Moderna", "Pfizer", "Moderna", "Novavax", 
+                   "Pfizer", "Moderna", 
+                  "Novavax", "Moderna", NA),
+    count = c(0, 3, 63, 88, 51,
+               38, 19,
+              5, 9, 7)
+)
+covid_vac
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+covid_vac <- data.frame(
+    year = c(2020, 2020, 2021, 2021, 2021,  2023, 2023,
+             2023, 2024, 2024), 
+    vaccine_type = c("Pfizer", "Moderna", "Pfizer", "Moderna", "Novavax", 
+                   "Pfizer", "Moderna", 
+                  "Novavax", "Moderna", NA),
+    count = c(0, 3, 63, 88, 51,
+               38, 19,
+              5, 9, 7)
+)
+covid_vac
+```
+
+```{=html}
+</details>
+```
+
+In this dataset, we identify two occurrences of missing values:
+
+1.  The vaccine_type in 2024 with a count of 7 is explicitly missing, denoted by the presence of NA in the cell where its value should be.
+2.  The counts for the Novavax vaccine in 2020 and Pfizer, Novavax vaccines in 2024, are implicitly missing, as they do not appear in the dataset at all.
+
+### `is.na()`
+
+To identify missing values we can use `is.na()` function which returns a logical vector with TRUE in the element locations that contain missing values represented by NA.
+
+```{r}
+#| eval: false
+#| classes: scrolling
+is.na(covid_vac)
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+is.na(covid_vac)
+```
+
+```{=html}
+</details>
+```
+
+```{r}
+#| eval: false
+is.na(covid_vac$vaccine_type)
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+is.na(covid_vac$vaccine_type)
+```
+
+```{=html}
+</details>
+```
+
+To identify the location or the number of NAs we can use the `which()` and `sum()` functions:
+
+```{r}
+#| eval: false
+#| classes: scrolling
+which(is.na(covid_vac))
+sum(is.na(covid_vac))
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+which(is.na(covid_vac))
+sum(is.na(covid_vac))
+```
+
+```{=html}
+</details>
+```
+
+### `na.omit()`
+
+To omit all rows containing missing values, we can use `na.omit()` function in base R:
+
+```{r}
+#| eval: false
+na.omit(covid_vac)
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+na.omit(covid_vac)
+```
+
+```{=html}
+</details>
+```
+
+### `complete()`
+
+We can use the `complete()` function to make our dataset more complete or to make missing values explicit in tidy data:
+
+```{r}
+#| eval: false
+#| classes: scrolling
+covid_vac |> complete(year, vaccine_type)
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+covid_vac |> complete(year, vaccine_type)
+```
+
+```{=html}
+</details>
+```
+
+This function add missing values for potential combinations of year and vaccine_type. One problem is that R assumes NA in status as one of the combinations. To fix this, we can specify the labels of status to be considered as follows:
+
+```{r}
+#| eval: false
+#| classes: scrolling
+covid_vac |> complete(year, vaccine_type = c("Pfizer", "Moderna", "Novavax"))
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+covid_vac |> complete(year, vaccine_type = c("Pfizer", "Moderna", "Novavax"))
+```
+
+```{=html}
+</details>
+```
+
+We can use the fill argument to assign the fill value:
+
+```{r}
+#| eval: false
+#| classes: scrolling
+covid_vac |> complete(year, 
+                      vaccine_type = c("Pfizer", "Moderna", "Novavax"),
+                       fill = list(count = 0))
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+covid_vac |> complete(year, 
+                      vaccine_type = c("Pfizer", "Moderna", "Novavax"),
+                       fill = list(count = 0))
+```
+
+```{=html}
+</details>
+```
+
+We can use the `full_seq()` function from `tidyr` to fill out the data frame with all years from 2020 to 2024 and assign vaccination types and count values of 0 to those years and for which there was no observation.
+
+```{r}
+#| eval: false
+covid_vac |> complete(year = full_seq(year, period = 1), 
+                      vaccine_type = c("Pfizer", "Moderna", "Novavax"),
+                       fill = list(count = 0))
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+covid_vac |> complete(year = full_seq(year, period = 1), 
+                      vaccine_type = c("Pfizer", "Moderna", "Novavax"),
+                       fill = list(count = 0))
+```
+
+```{=html}
+</details>
+```
+
+### `fill()`
+
+The `fill()` function is used to fill missing values in a data frame, particularly within columns. 
+
+Let's first make missing values in the covid_vac dataset explicit and assign it to a data frame named covid_vac_comp. 
+
+```{r}
+covid_vac_comp <-  covid_vac |> 
+  complete(year = full_seq(year, period = 1), 
+           vaccine_type = c("Pfizer", "Moderna", "Novavax"))
+```
+
+We can specify the direction to fill the missing values using the argument `.direction`. Remember to specify the list of columns to fill. 
+
+```{r}
+#| eval: false
+covid_vac_comp |> fill(count, .direction = "down")
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+covid_vac_comp |> fill(count, .direction = "down")
+```
+
+```{=html}
+</details>
+```
+
+Similarly, we can fill upwards as follows:
+
+```{r}
+#| eval: false
+covid_vac_comp |> fill(count, .direction = "up")
+```
+
+```{=html}
+<details>
+<summary>Output</summary>
+```
+
+```{r}
+#| echo: false
+#| classes: scrolling
+covid_vac_comp |> fill(count, .direction = "up")
+```
+
+```{=html}
+</details>
+```
+
+Once the data is structured and organized according to tidy principles, we can begin manipulating and transforming it. The next section illustrates how this can be accomplished using the `dplyr` package from the tidyverse package suit.
