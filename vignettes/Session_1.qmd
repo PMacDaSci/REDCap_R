@@ -486,32 +486,6 @@ For example:
 # evenOthersUseCamelCase
 ```
 
-## The Pipe Operator (`|>`)
-
-The *pipe* operator (`|>`) is a commonly used feature of the tidyverse. It was originally defined in the (cleverly named) magrittr package, but is also included in the `dplyr`, tidyverse packages. The `|>` symbol can seem confusing and intimidating at first. However, once you understand the basic idea, it can become addicting!
-
-We suggest you use a shortcut: <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd> (Mac) or <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd> (Windows/Linux).
-
-The `|>` symbol is placed between a value on the left and a function on the right. The `|>` simply takes the value to the left and passes it to the function on the right as the first argument. It acts as a "pipe". That's it!
-
-Suppose we have a variable, `x`.
-
-```{r}
-x <- 7
-```
-
-The following are the exact same.
-
-```{r}
-sqrt(x)
-```
-
-```{r}
-x |> sqrt()
-```
-
-We'll continue to use `|>` throughout this tutorial to show how useful it can be for chaining various data manipulation steps during an analysis.
-
 ## Clearing the Environment
 
 Take a look at the objects you have created in your workspace that is accumulated in the environment pane in the upper right corner of RStudio.
@@ -989,6 +963,33 @@ immuno |>
 labelled::look_for(demographics)
 ```
 
+## Renaming column names using labels
+
+Some columns associated with **checkbox fields** in REDCap forms often have less intuitive names. For example, in the `melanoma_data` instrument, the melanoma type columns are named as `mel_type___1`, `mel_type___2`, `mel_type___3`, etc. These names correspond to different melanoma subtypes but are not easily interpretable.
+
+To improve readability, these columns can be renamed using their corresponding labels, making the dataset more intuitive for analysis. The following function automates this renaming process by extracting variable labels and applying them to the column names.
+
+```{r}
+# This function rename checkbox columns using the labels
+rename_checkbox_columns <- function(instrument, column_name_prefix) {
+  # List of column names to rename 
+  col_names_to_rename <- labelled::look_for(instrument, column_name_prefix)$variable
+  # New names for the selected columns
+  new_names <- labelled::look_for(instrument, column_name_prefix)$label
+  new_names <- str_replace_all(new_names, " ", "_")
+  new_names <- str_replace_all(new_names, ":", "")
+  # Rename the columns
+  names(instrument)[names(instrument) %in% col_names_to_rename] <- new_names
+  return(instrument)
+}
+```
+
+
+```{r}
+melanoma_data <- rename_checkbox_columns(melanoma_data, "mel_type___")
+head(melanoma_data)
+```
+
 ## Viewing the Data
 
 This section demonstrates different ways to get to know the `immuno` dataset and its instruments. 
@@ -996,24 +997,7 @@ This section demonstrates different ways to get to know the `immuno` dataset and
 When the name of the object is typed, the first few lines along with some information, such as the number of rows are displayed:
 
 ```{r}
-#| eval: false
-#| classes: scrolling
 immuno
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-immuno
-```
-
-```{=html}
-</details>
 ```
 
 To view any column displayed above in the `immuno` object, you can specify the column number within `[[]]` or column name followed by `$`.
@@ -1021,74 +1005,22 @@ To view any column displayed above in the `immuno` object, you can specify the c
 - For example to view column 1:
 
 ```{r}
-#| eval: false
-#| classes: scrolling
 immuno[[1]]
 ```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-immuno[[1]]
-```
-
-```{=html}
-</details>
-```
-
 
 - For example to view `redcap_form_name` column:
 
 ```{r}
-#| eval: false
-#| classes: scrolling
 immuno$redcap_form_name
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-immuno$redcap_form_name
-```
-
-```{=html}
-</details>
 ```
 
 A similar method can be used to access the patient data in all instruments using the `redcap_data` column or the 3rd column in this case. However, this displays patient data of all the instruments one after the other, making it difficult to read. A better way is to view a single instrument as follows.
 
 For example, to view the `mortality_data` instrument, we can access the redcap_data column first (i.e., `immuno$redcap_data` or `immuno[[3]]`) and then access the 15th instrument:
 
-
 ```{r}
 #| eval: false
-#| classes: scrolling
-immuno$redcap_data[[15]] # same as immuno[[3]][[15]]
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-immuno$redcap_data[[15]] # same as immuno[[3]][[15]]
-```
-
-```{=html}
-</details>
+head(immuno$redcap_data[[15]]) # same as immuno[[3]][[15]]
 ```
 
 The `dim()` function prints the dimensions (rows x columns):
@@ -1096,7 +1028,6 @@ The `dim()` function prints the dimensions (rows x columns):
 ```{r}
 dim(immuno)
 ```
-
 
 ```{r}
 dim(immuno$redcap_data[[15]])
@@ -1124,157 +1055,46 @@ By clicking the object on the environment tab also gives a spreadsheet-like view
 The `head()` function prints the top 6 rows of a data frame:
 
 ```{r}
-#| eval: false
-#| classes: scrolling
 head(immuno$redcap_data[[15]])
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-head(immuno$redcap_data[[15]])
-```
-
-```{=html}
-</details>
 ```
 
 Similarly, the `tail()` function prints the bottom 6 rows of the data frame:
 
 ```{r}
-#| eval: false
 tail(immuno$redcap_data[[15]])
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-tail(immuno$redcap_data[[15]])
-```
-
-```{=html}
-</details>
 ```
 
 The `colnames()` function displays all the column names:
 
 ```{r}
-#| classes: scrolling
 colnames(immuno$redcap_data[[15]])
 ```
 
 The `$` symbol allows access to individual columns. To display `mortality_date` column:
 
 ```{r}
-#| eval: false
-#| classes: scrolling
-immuno$redcap_data[[15]]$mortality_date 
+head(immuno$redcap_data[[15]]$mortality_date)
 ```
 
 The `str()` function shows the structure of the data:
 
 ```{r}
-#| eval: false
-#| classes: scrolling
 str(immuno$redcap_data[[15]])
 ```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-str(immuno$redcap_data[[15]])
-```
-
-```{=html}
-</details>
-```
-
 
 The `glimpse()`function (dplyr package) displays a compact summary of the data frame, showing you key details such as the data types of each column, the first few values, and the total number of observations.
 
 ```{r}
-#| eval: false
 glimpse(immuno$redcap_data[[15]])
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-glimpse(immuno$redcap_data[[15]])
-```
-
-```{=html}
-</details>
 ```
 
 The `summary()` function generates summary statistics:
 
 ```{r}
-#| eval: false
-#| classes: scrolling
 summary(immuno$redcap_data[[15]])
 ```
 
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-summary(immuno$redcap_data[[15]])
-```
-
-```{=html}
-</details>
-```
-
-
-The `glimpse()`function (dplyr package) displays a compact summary of the data frame, showing you key details such as the data types of each column, the first few values, and the total number of observations.
-
-```{r}
-#| eval: false
-glimpse(immuno$redcap_data[[15]])
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-glimpse(immuno$redcap_data[[15]])
-```
-
-```{=html}
-</details>
-```
-
-
-A statitical overview can be obtained using the `skim()` function in skimr package:
+A statistical overview can be obtained using the `skim()` function in skimr package:
 
 ```{r}
 #| eval: false
@@ -1327,607 +1147,31 @@ write_tsv(cms_data, "~/Desktop/cms_data.csv")
 write_tsv(cms_data, "C:/Users/srajapaksa/Desktop/cms_data.csv")
 ```
 
-# Data manipulation with \`dplyr\` functions
+## The Pipe Operator (`|>`)
 
-You'll primarily use six key `dplyr` functions for data manipulations:
+The *pipe* operator (`|>`) is a commonly used feature of the tidyverse. It was originally defined in the (cleverly named) magrittr package, but is also included in the `dplyr`, tidyverse packages. The `|>` symbol can seem confusing and intimidating at first. However, once you understand the basic idea, it can become addicting!
 
-1.  **`filter()`:** pick observations based on their values.
-2.  **`select()`:** pick variables by their names.
-3.  **`mutate()`:** create new variables using functions applied to existing variables.
-4.  **`summarise()`:** collapse multiple values into a single summary.
-5.  **`group_by()`:** group the rows based on specified criteria.
-6.  **`arrange()`:** reorder the rows based on specified criteria.
+We suggest you use a shortcut: <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd> (Mac) or <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd> (Windows/Linux).
 
-If you've already installed the tidyverse package (if not, you can do so by running the command: `install.packages("tidyverse")`), let's proceed to load it into our R session first:
+The `|>` symbol is placed between a value on the left and a function on the right. The `|>` simply takes the value to the left and passes it to the function on the right as the first argument. It acts as a "pipe". That's it!
+
+Suppose we have a variable, `x`.
 
 ```{r}
-#| message: false
-library(tidyverse)
+x <- 7
 ```
 
-### `filter()`
-
-The `filter()` function takes logical expressions and returns the rows for which all are `TRUE`.
-
-![](http://ohi-science.org/data-science-training/img/rstudio-cheatsheet-filter.png)
-
-**Example 1:** Filter the demographics data frame to find all the facilities with an overall_rating of 3.
+The following are the exact same.
 
 ```{r}
-#| eval: false
-#| classes: scrolling
-demographics |> filter(overall_rating == 3)
+sqrt(x)
 ```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> filter(overall_rating == 3)
-```
-
-</details>
-
-Here we are *sending* the cms_data data frame into the function `filter()` which tests each value in overall_rating column for the value 3 and returns the rows where this condition is TRUE.
-
-You can check the dimension (number of rows and number of columns) of the resulting data frame by sending into the `dim()` function as follows:
 
 ```{r}
-#| eval: false
-cms_data |> filter(overall_rating == 3) |> dim()
+x |> sqrt()
 ```
 
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-cms_data |> filter(overall_rating == 3) |> dim()
-```
-
-</details>
-
-**Example 2:** Find all the facilities categorized as "Acute Care Hospital". Here we filter on character data.
-
-```{r}
-#| eval: false
-#| classes: scrolling
-cms_data |> filter(hospital_type == "Acute Care Hospital")
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> filter(hospital_type == "Acute Care Hospital")
-```
-
-</details>
-
-We can use logical operators introduced before to combine multiple conditions as follows.
-
-**Example 3:** Find all the facilities categorized as "Acute Care Hospital" and has a overall rating of above 3.
-
-```{r}
-#| eval: false
-#| classes: scrolling
-cms_data |> filter(hospital_type == "Acute Care Hospital" & overall_rating > 3)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> filter(hospital_type == "Acute Care Hospital" & overall_rating > 3)
-```
-
-</details>
-
-**Example 4:** Find the facilities with any rating greater than or equal to 3.
-
-```{r}
-#| eval: false
-#| classes: scrolling
-cms_data |> filter(star_rating >= 3 | overall_rating >= 3)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> filter(star_rating >= 3 | overall_rating >= 3)
-```
-
-</details>
-
-**Example 5:** Find the facilitites with any rating greater than or equal to 3 and the response rate is above 30.
-
-```{r}
-#| eval: false
-#| classes: scrolling
-cms_data |> filter(star_rating >= 3 | overall_rating >= 3 & response_rate > 30)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> filter(star_rating >= 3 | overall_rating >= 3 & response_rate > 30)
-```
-
-</details>
-
-The output of the above command is incorrect. Recall R operator precedence where & operator precedes \| operator. Therefore, the command `overall_rating >= 3 & response_rate > 30` is evaluated first. This can be verified by adding brackets around this command as follows: To fix the issue add brackets as follows:
-
-```{r}
-#| eval: false
-#| classes: scrolling
-cms_data |> filter(star_rating >= 3 | (overall_rating >= 3 & response_rate > 30))
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> filter(star_rating >= 3 | (overall_rating >= 3 & response_rate > 30))
-```
-
-</details>
-
-To fix the issue add brackets as follows:
-
-```{r}
-#| eval: false
-#| classes: scrolling
-cms_data |> filter((star_rating >= 3 | overall_rating >= 3) & response_rate > 30)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> filter((star_rating >= 3 | overall_rating >= 3) & response_rate > 30)
-```
-
-</details>
-
-This results in the correct output.
-
-#### `%in%` helper
-
-The `%in%` function is used to determine whether elements of one vector are present in another vector. It returns a logical vector indicating whether each element of the first vector is found in the second vector.
-
-When we want to filter a subset of rows that may contain multiple different values, it's more efficient to provide a vector of the values of interest instead of combining multiple OR commands.
-
-**Example 6:** Retrieve a subset of facilities that have an odd number of overall rating.
-
-```{r}
-#| eval: false
-cms_data |> filter(overall_rating %in% c(1, 3, 5))
-```
-
-```{=html}
-<details>
-  <summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> filter(overall_rating %in% c(1, 3, 5))
-```
-
-</details>
-
-#### `str_detect` function
-
-The `str_detect()` function is part of the `stringr` package and is used for pattern matching within strings. It allows you to search for a specific pattern or regular expression (discussed later) within a character vector or string.
-
-**Example 1:** Find all the facilities that contains GENERAL in their name from the cms_data data frame.
-
-```{r}
-#| eval: false
-cms_data |> filter(
-  str_detect(facility_name, 'GENERAL')
-  )
-```
-
-```{=html}
-<details>
-  <summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> filter(
-  str_detect(facility_name, 'GENERAL')
-  )
-```
-
-</details>
-
-### `select()`
-
-The `select()` function returns a subset of the variables or columns.
-
-![](http://ohi-science.org/data-science-training/img/rstudio-cheatsheet-select.png){fig-align="center"}
-
-This function can accept column names (even without quotation marks) or the column position number starting from the left. Unlike in base R (we explore before), commands within the brackets in `select()` do not need to be concatenated using `c()`.
-
-**Example 1:** Extract the facility name, hospital type and overall rating columns from cms_data data frame.
-
-```{r}
-#| eval: false
-cms_data |> select(facility_name, hospital_type, overall_rating)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> select(facility_name, hospital_type, overall_rating)
-```
-
-</details>
-
-Using column positions:
-
-```{r}
-#| eval: false
-cms_data |> select(2, 4, 8)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> select(2, 4, 8)
-```
-
-</details>
-
-We can use the '-' symbol to extract all columns except for specific ones:
-
-```{r}
-#| eval: false
-cms_data |> dplyr::select(-id, -county_name, -star_rating, -no_of_surveys, -response_rate)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> select(-id, -star_rating, -no_of_surveys, -response_rate, -county)
-```
-
-</details>
-
-Or use a combination of column names and positions:
-
-```{r}
-#| eval: false
-cms_data |> select(2, 4, overall_rating)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> select(2, 4, overall_rating)
-```
-
-</details>
-
-#### Useful helper functions
-
-The select helper functions (check `?select_helpers`) are a set of convenience functions provided by the `dplyr` package. These functions offer shortcuts for selecting columns based on specific criteria or patterns, making it easier to work with data frames.
-
-Some commonly used select helper functions include:
-
-1.  **`starts_with()`:** selects columns that start with a specified prefix.
-
-```{r}
-#| eval: false
-cms_data |> select(starts_with('s'))
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> select(starts_with('s'))
-```
-
-</details>
-
-2.  **`ends_with()`:** selects columns that end with a specified suffix.
-
-```{r}
-#| eval: false
-cms_data |> select(ends_with('g'))
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> select(ends_with('g'))
-```
-
-</details>
-
-3.  **`contains()`:** selects columns that contain a specified substring.
-
-```{r}
-#| eval: false
-cms_data |> select(contains('name'))
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> select(contains('name'))
-```
-
-</details>
-
-```{r}
-#| eval: false
-cms_data |> select(contains('f'))
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> select(contains('f'))
-```
-
-</details>
-
-4.  **`matches()`:** selects columns that match a specified regular expression pattern.
-
-```{r}
-#| eval: false
-cms_data |> select(
-  matches('[a-z]_[a-z]{4}$')
-  )
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> select(matches('[a-z]_[a-z]{4}$'))
-```
-
-</details>
-
-Here, the regular expression `[a-z]_[a-z]{4}$` can be broken down into smaller chunks for better understanding:
-
--   `[a-z]` matches a set of lowercase characters from 'a' to 'z'.
--   `_` matches an underscore.
--   `[a-z]{4}` matches any four lowercase characters from 'a' to 'z'.
-
-Putting this together, the expression selects column names that have four characters after an underscore. Thus, it should match column names: facility_name, county_name, hospital_type, and response_rate.
-
-If you're unfamiliar with regular expressions, you can skip this section for now. However, interested readers can find many online resources to learn about regular expressions. One of my favorite online tools for building and testing regular expressions is <https://regexr.com>. You can use this tool to test the correctness of a regular expression.
-
-5.  **`num_range()`:** selects columns based on a numeric range.
-
-Let's use the count data frame for this example. First read the csv file: GSE60450_normalized_data.csv.
-
-```{r}
-#| eval: false
-counts <- read_csv("data/GSE60450_normalized_data.csv")
-colnames(counts)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-counts <- read_csv("data/GSE60450_normalized_data.csv")
-colnames(counts)
-```
-
-</details>
-
-To select the samples from GSM1480297 to GSM1480300:
-
-```{r}
-#| eval: false
-counts |> select(
-  num_range(prefix = "GSM1480", 297:300)
-  )
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-counts |> select(num_range(prefix = "GSM1480", range = 297:300))
-```
-
-</details>
-
-6.  **`all_of()`:** selects columns specified by character vector.
-
-```{r}
-#| error: true
-cms_data |> select(
-  all_of(c("star_rating", "no_of_surveys", "response_rate", "no_column_by_this_name"))
-  )
-```
-
-When using `all_of()`, all the names provided by the vector must be present in the data frame. Otherwise, it will result in an error, as shown above.
-
-```{r}
-#| eval: false
-cms_data |> select(
-  all_of(c("star_rating", "no_of_surveys", "response_rate"))
-  )
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> select(
-  all_of(c("star_rating", "no_of_surveys", "response_rate"))
-  )
-```
-
-</details>
-
-7.  **`any_of()`:** selects columns specified by character vector, allowing any of them to be present.
-
-```{r}
-#| eval: false
-cms_data |> select(
-  any_of(c("star_rating", "no_of_surveys", "response_rate", "no_column_by_this_name"))
-  )
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> select(
-  any_of(c("star_rating", "no_of_surveys", "response_rate", "no_column_by_this_name"))
-  )
-```
-
-</details>
-
-8.  **`everything()`:** Selects all columns.
-
-This function returns all column names that have not been specified. It is often used when reordering all columns in a dataframe:
-
-```{r}
-#| eval: false
-cms_data |> select(5, 8, 2, everything())
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> select(5, 8, 2, everything())
-```
-
-</details>
-
-Here the dimensions of the dataframe is not changed, merely the column order.
-
-::: {callout-tip}
-You can combine multiple helper functions to create more complex selection criteria. Additionally, you can use the '-' symbol in front of the helper function to exclude the matched columns.
-:::
-
-For example try the following examples:
-
-```{r}
-#| eval: false
-cms_data |> select(starts_with('i'), contains('rating'))
-cms_data |> select(ends_with("type"), everything(), -1, -3)
-```
-
-### `mutate()`
-
-The `mutate()` function adds new columns of data, thus 'mutating' the contents and dimensions of the input data frame.
-
-![](http://ohi-science.org/data-science-training/img/rstudio-cheatsheet-mutate.png)
-
-**Example 1:** Calculate the total number of patients or visitors who responded to the survey in each facility (i.e, $\text{response rate } = \frac{\text{number of responses}}{\text{total number of surveys}} \times 100$).
-
-Here we use the `round()` function to round off the result to the closest integer or numeric value as number of responses cannot contain decimal values.
-
-```{r}
-#| eval: false
-cms_data |> 
-  mutate(no_of_responses = round(no_of_surveys * response_rate / 100))
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> 
-  mutate(no_of_responses = no_of_surveys * response_rate)
-```
-
-</details>
-
-This creates a new column at the end of the data frame named 'no_of_responses' and computes the total number of responses. Because the number of columns is expanding, we can reduce the number of columns displayed using the `select()` function.
-
-To do this, we need to use *chaining* which is discussed below.
+We'll continue to use `|>` throughout this tutorial to show how useful it can be for chaining various data manipulation steps during an analysis.
 
 ### Chaining functions
 
@@ -1953,30 +1197,225 @@ In this template:
 
 Each operation takes the output of the previous operation as its input, making it easy to chain multiple operations together. This improves the readability of your code by organizing operations in a left-to-right fashion and it avoids creating intermediate variables to store the results of each operation.
 
-### `mutate()` continued
+# Data manipulation with \`dplyr\` functions
 
-Let's use chaining to combine both `select()` and `mutate()` operations for the previos example:
+You'll primarily use six key `dplyr` functions for data manipulations:
+
+1.  **`filter()`:** pick observations based on their values.
+2.  **`select()`:** pick variables by their names.
+3.  **`mutate()`:** create new variables using functions applied to existing variables.
+4.  **`summarise()`:** collapse multiple values into a single summary.
+5.  **`group_by()`:** group the rows based on specified criteria.
+6.  **`arrange()`:** reorder the rows based on specified criteria.
+
+If you've already installed the tidyverse package (if not, you can do so by running the command: `install.packages("tidyverse")`), let's proceed to load it into our R session first:
+
+```{r}
+#| message: false
+library(tidyverse)
+```
+
+Next, load the pre-processed RDS Object:
+
+```{r}
+immuno_dataset <- readRDS("data/Sample_immuno_dataset.rds")
+```
+
+**RDS (R Data Serialization)** files are used to save and load single R objects while preserving their structure, labels, and attributes. The *.rds* format is useful for storing dataframes, lists, models, and other complex objects. For convenience, the previously loaded REDCap dataset has been pre-processed and saved as an .rds file. This pre-processed version will be used throughout the remainder of the workshop. 
+
+### `filter()`
+
+The `filter()` function takes logical expressions and returns the rows for which all are `TRUE`.
+
+![](http://ohi-science.org/data-science-training/img/rstudio-cheatsheet-filter.png)
+
+**Example 1:** Find all records from the `melanoma_data` data frame where the melanoma type is cutaneous.
+
+```{r}
+immuno_dataset$redcap_data$melanoma_data |> 
+  filter(melanoma_type == "cutaneous") |> 
+  head(20)
+```
+
+Here we are *sending* the `immuno_dataset$redcap_data$melanoma_data` data frame into the function `filter()` which tests each value in melanoma_type column for the value "cutaneous" and returns the rows where this condition is TRUE.
+
+You can check the dimension (number of rows and number of columns) of the resulting data frame by using the `dim()` function as follows:
+
+```{r}
+immuno_dataset$redcap_data$melanoma_data |> filter(melanoma_type == "cutaneous") |> dim()
+```
+
+
+**Example 2:** Identify records in `mortality_data` where time since first treatment dose  (`mortality_treatment_time`) exceeds 1 year. `mortality_treatment_time` is given in months. 
+
+```{r}
+immuno_dataset$redcap_data$mortality_data |> 
+  filter(mortality_treatment_time > 12) |> 
+  head(20)
+```
+
+We can use logical operators like and `&`, or `|` to combine multiple conditions as follows.
+
+**Example 3:** Find all the records in `mortality_data` where cause of death (`mortality_cause`) is categorized as "melanoma progression" and has a date of last follow up or death (`mortality_date`)  before "2023-01-01"  
+
+```{r}
+immuno_dataset$redcap_data$mortality_data |> 
+  filter(mortality_cause == "melanoma progression" & mortality_date > "2023-01-01") |> 
+  head(20)
+```
+
+**Example 4:** Find the records in `melanoma_data` where `melanoma_molecular_mutation` is either braf or nras.
+
+```{r}
+immuno_dataset$redcap_data$melanoma_data |> 
+  filter(melanoma_molecular_mutation == "braf" | melanoma_molecular_mutation == "braf") |> 
+  head(20)
+```
+
+**Example 5:** Retrieve records where `mortality_cause` is due to "treatment toxicity" and `mortality_treatment_time` is greater than 4 months but less than or equal to 10 months.
+
+```{r}
+immuno_dataset$redcap_data$mortality_data |> 
+  filter(
+    mortality_cause == "treatment toxicity" & 
+    mortality_treatment_time > 4 & 
+    mortality_treatment_time <= 10) |> 
+  head(20)
+```
+
+#### `%in%` helper
+
+The `%in%` function is used to determine whether elements of one vector are present in another vector. It returns a logical vector indicating whether each element of the first vector is found in the second vector.
+
+When we want to filter a subset of rows that may contain multiple different values, it's more efficient to provide a vector of the values of interest instead of combining multiple OR commands.
+
+**Example 6:** Retrieve records where `melanoma_type` is acral, cutaneous or muscosal. 
+
+```{r}
+immuno_dataset$redcap_data$melanoma_data |> 
+  filter(melanoma_type %in% c("acral", "cutaneous",  "muscosal")) |> 
+  head(20)
+```
+
+### `select()`
+
+The `select()` function returns a subset of the variables or columns.
+
+![](http://ohi-science.org/data-science-training/img/rstudio-cheatsheet-select.png){fig-align="center"}
+
+This function can accept column names (even without quotation marks) or the column position number starting from the left. Unlike in base R (we explore before), commands within the brackets in `select()` do not need to be concatenated using `c()`.
+
+**Example 1:** Extract the record ID, ECG date (`ae_ecg_date`) and MRI date (`ae_mri_date`) columns from `adverse_events` data frame.
+
+```{r}
+immuno_dataset$redcap_data$adverse_events |> 
+  select(record_id, ae_ecg_date, ae_mri_date) |> 
+  head(20)
+```
+
+Using column positions:
+
+```{r}
+immuno_dataset$redcap_data$adverse_events |> 
+  select(1, 23, 32) |> 
+  head(20)
+```
+
+We can use the '-' symbol to extract all columns except for specific ones:
+
+```{r}
+immuno_dataset$redcap_data$demographics |> 
+  select(-redcap_event, -ur, -sex, -dob, -height, -weight) |> 
+  head(20)
+```
+
+Or use a combination of column names and positions:
 
 ```{r}
 #| eval: false
-cms_data |> 
-  select(facility_name, no_of_surveys, response_rate) |> 
-  mutate(no_of_responses = round(no_of_surveys * response_rate / 100))
+immuno_dataset$redcap_data$demographics |> 
+  select(1, medical_history, 15) |> 
+  head(20)
 ```
 
-```{=html}
-<details>
-<summary>Output</summary>
-```
+#### Useful helper functions
+
+The select helper functions (check `?select_helpers`) are a set of convenience functions provided by the `dplyr` package. These functions offer shortcuts for selecting columns based on specific criteria or patterns, making it easier to work with data frames.
+
+Some commonly used select helper functions include:
+
+1.  **`starts_with()`:** selects columns that start with a specified prefix.
+
 ```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> 
-  select(facility_name, no_of_surveys, response_rate) |> 
-  mutate(no_of_responses = no_of_surveys * response_rate)
+immuno_dataset$redcap_data$immune_related_adverse_events_iraes |> 
+  select(starts_with('liver')) |> 
+  head(20)
 ```
 
-</details>
+2.  **`ends_with()`:** selects columns that end with a specified suffix.
+
+```{r}
+immuno_dataset$redcap_data$immune_related_adverse_events_iraes |> 
+  select(ends_with('date')) |> 
+  head(20)
+```
+
+3.  **`contains()`:** selects columns that contain a specified substring.
+
+```{r}
+#| eval: false
+immuno_dataset$redcap_data$immune_related_adverse_events_iraes |> 
+  select(contains('skin')) |> 
+  head(20)
+```
+
+4.  **`everything()`:** Selects all columns.
+
+This function returns all column names that have not been specified. It is often used when reordering all columns in a dataframe:
+
+```{r}
+#| eval: false
+immuno_dataset$redcap_data$immune_related_adverse_events_iraes |> 
+  select(1, starts_with("gastro"), everything()) |> 
+  head(20)
+```
+
+Here the dimensions of the dataframe is not changed, merely the column order.
+
+::: {callout-tip}
+You can combine multiple helper functions to create more complex selection criteria. Additionally, you can use the '-' symbol in front of the helper function to exclude the matched columns.
+:::
+
+### `mutate()`
+
+The `mutate()` function adds new columns of data, thus 'mutating' the contents and dimensions of the input data frame.
+
+![](http://ohi-science.org/data-science-training/img/rstudio-cheatsheet-mutate.png)
+
+**Example 1:** Calculate the BMI of patients (i.e, $\text{BMI } = \frac{\text{nweight}}{\text{height in m} \times \text{ height in m}} \times 100$).
+
+Here we use the `round()` function to round off the result to the closest integer or numeric value as number of responses cannot contain decimal values.
+
+```{r}
+immuno_dataset$redcap_data$demographics |> 
+  mutate(bmi_new = weight / (height/100 * height/100)) |> 
+  head(20)
+```
+
+This creates a new column at the end of the data frame named `bmi_new` and computes the BMI. Because the number of columns is expanding, we can reduce the number of columns displayed using the `select()` function.
+
+To do this, we need to use *chaining* which is discussed below.
+
+### `mutate()` continued
+
+Let's use chaining to combine both `select()` and `mutate()` operations for the previous example:
+
+```{r}
+immuno_dataset$redcap_data$demographics |> 
+  select(record_id, weight, height, bmi) |> 
+  mutate(bmi_new = weight / (height/100 * height/100)) |> 
+  head(20)
+```
 
 ### `summarise()`
 
@@ -1986,84 +1425,42 @@ The `summarise()` function creates individual summary statistics from larger dat
 
 The output of `summarise()/summarize()` differs qualitatively from the input. It results in a smaller dataframe with a reduced representation of the original data. While not strictly necessary, it's advisable to assign new column names for the summary statistics generated by this function. This practice enhances clarity and organization in your data analysis workflow.
 
-**Example 1:** Calculate the mean number of surveys.
+**Example 1:** Calculate the mean number of creatinine (`sys_path_creat`) in `prior_treatment` data frame.
 
 ```{r}
-#| eval: false
-cms_data |> 
-  summarise(mean_no_of_surveys = mean(no_of_surveys))
+immuno_dataset$redcap_data$prior_treatment |> 
+  summarise(mean_creatinine = mean(sys_path_creat))
 ```
 
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> 
-  summarise(mean_no_of_surveys = mean(no_of_surveys))
-```
-
-</details>
-
-This results in a data frame of size 1 row $\times$ 1 col. We can create additional summary statistics by adding them in a comma-separated sequence as follows:
+This results in a data frame of size 1 row $\times$ 1 col with a value of `NA`, indicating that the result is either *N*ot *A*pplicable or missing. This occurs because the column contains missing values, making the mean calculation invalid. To compute the mean creatinine level while excluding missing values, use the `na.rm = TRUE` argument in the `mean()` function.
 
 ```{r}
-#| eval: false
-cms_data |> 
-  summarise(mean_no_of_surveys = mean(no_of_surveys),
-            min_no_of_surveys = min(no_of_surveys),
-            max_no_of_surveys = max(no_of_surveys),
-            tot_no_of_surveys = sum(no_of_surveys))
+immuno_dataset$redcap_data$prior_treatment |> 
+  summarise(mean_creatinine = mean(sys_path_creat, na.rm = TRUE))
 ```
 
-```{=html}
-<details>
-<summary>Output</summary>
-```
+We can create additional summary statistics by adding them in a comma-separated sequence as follows:
+
 ```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> 
-  summarise(mean_no_of_surveys = mean(no_of_surveys),
-            min_no_of_surveys = min(no_of_surveys),
-            max_no_of_surveys = max(no_of_surveys),
-            tot_no_of_surveys = sum(no_of_surveys))
+immuno_dataset$redcap_data$prior_treatment |> 
+  summarise(mean_creatinine = mean(sys_path_creat, na.rm = TRUE),
+            min_creatinine = min(sys_path_creat, na.rm = TRUE),
+            max_creatinine = max(sys_path_creat, na.rm = TRUE),
+            total_creatinine = sum(sys_path_creat, na.rm = TRUE))
 ```
-
-</details>
 
 #### `n()` helper function
 
 This function counts the number of observations in a dataset. It does not take any arguments, but simply counts the rows.
 
 ```{r}
-#| eval: false
-cms_data |> 
-  summarise(mean_no_of_surveys = mean(no_of_surveys),
-            min_no_of_surveys = min(no_of_surveys),
-            max_no_of_surveys = max(no_of_surveys),
-            tot_no_of_surveys = sum(no_of_surveys),
+immuno_dataset$redcap_data$prior_treatment |> 
+  summarise(mean_creatinine = mean(sys_path_creat, na.rm = TRUE),
+            min_creatinine = min(sys_path_creat, na.rm = TRUE),
+            max_creatinine = max(sys_path_creat, na.rm = TRUE),
+            total_creatinine = sum(sys_path_creat, na.rm = TRUE), 
             n_rows = n())
 ```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> 
-  summarise(mean_no_of_surveys = mean(no_of_surveys),
-            min_no_of_surveys = min(no_of_surveys),
-            max_no_of_surveys = max(no_of_surveys),
-            tot_no_of_surveys = sum(no_of_surveys),
-            n_rows = n())
-```
-
-</details>
 
 ### `arrange()`
 
@@ -2071,283 +1468,53 @@ The `arrange()` function orders rows based on the values in a given column.
 
 ![](images/arrange.png)
 
-**Example 1:** Order the facilities based on the county.
+**Example 1:** Order the records based on the UR number in `demographics`.
 
 ```{r}
-#| eval: false
-cms_data |> 
-  arrange(county)
+immuno_dataset$redcap_data$demographics |> 
+  arrange(ur) |> 
+  head(20)
 ```
 
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> 
-  arrange(county)
-```
-
-</details>
-
-**Example 2:** Sort the facilities based on the overall rating first and then by response rate.
+**Example 2:** Sort the records in `mortality_data` based on the mortality date first and then by last scan date (`date_last_scan`). 
 
 ```{r}
-#| eval: false
-cms_data |> 
-  arrange(overall_rating, response_rate)
+immuno_dataset$redcap_data$mortality_data |> 
+  arrange(mortality_date, date_last_scan) |> 
+  head(20)
 ```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> 
-  arrange(overall_rating, response_rate)
-```
-
-</details>
 
 #### `desc()` helper function
 
 This function is used to sort data in descending order.
 
-**Example 3:** Sort the facilities in descending order based on the number of surveys
+**Example 3:** Sort the records in `mortality_data` in descending order based on the `mortality_treatment_time`.
 
 ```{r}
-#| eval: false
-cms_data |> 
-  arrange(desc(no_of_surveys))
+immuno_dataset$redcap_data$mortality_data |> 
+  arrange(desc(mortality_treatment_time)) |> 
+  head(20)
 ```
 
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> 
-  arrange(desc(no_of_surveys))
-```
-
-</details>
-
-### `group_by()`
-
-The `group_by()` function groups data by one or more variables. It allows us to create sub groups based on labels in a particular column and to run subsequent functions or operations on all sub groups.
-
-![](images/groupby.png)
-
-The `group_by()` function essentially partitions the data into separate subsets, each corresponding to a distinct category in a specified column. To observe this in action, inspect the structure using `str()` of the cms_data dataset before and after grouping:
-
-```{r}
-#| eval: false
-cms_data |> str()
-```
-
-```{=html}
-<details>
-  <summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> str()
-```
-
-</details>
-
-```{r}
-#| eval: false
-cms_data |> group_by(hospital_type) |> str()
-```
-
-```{=html}
-<details>
-  <summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cms_data |> group_by(hospital_type) |> str()
-```
-
-</details>
-
-The result of applying `group_by()` is a 'grouped_df' (grouped data frame) and all subsequent functions are executed independently on each subgroup of the data.
-
-#### `ungroup()` helper
-
-The `ungroup()` function is used to remove grouping from a data frame or a grouped data frame created using the `group_by()` function.
-
-When you apply `group_by()` to a data frame, it creates a grouped data frame where operations like summarization or manipulation are performed within each group defined by the grouping variables. However, in some cases, you may want to remove the grouping structure and return to the original ungrouped data frame. This is where the `ungroup()` function comes into play.
-
-### Combining multiple `dplyr` functions
-
-In this section, we will be using the Australian_Cancer_Incidence_and_Mortality.csv dataset.
-
-```{r}
-#| warning: false
-#| message: false
-cancer_mort <- read_csv("data/Australian_Cancer_Incidence_and_Mortality.csv")
-```
-
-First, let's examine the dimensions of this dataset.
-
-```{r}
-#| eval: false
-dim(cancer_mort)
-```
-
-```{=html}
-<details>
-  <summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-dim(cancer_mort)
-```
-
-</details>
-
-Next, let's take a look at the top few rows of this data frame.
-
-```{r}
-#| eval: false
-head(cancer_mort)
-```
-
-```{=html}
-<details>
-  <summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-head(cancer_mort)
-```
-
-</details>
-
-#### `count()` helper
+### `count()` helper
 
 The `count()` function is used to count the number of occurrences of unique values in one or more variables within a data frame. This function is particularly useful for summarizing data and understanding the distribution of values within a dataset.
 
-It is a convenient function that combines `group_by()` and `summarize()` in one step, particularly useful for counting occurrences of character data.
-
-**Example 1:** Count the number of cancers observed in each cancer type.
+**Example 1:** Count the number of melanoma types in `melanoma_data` data frame.
 
 ```{r}
-#| eval: false
-cancer_mort |> count(Cancer_Type)
+immuno_dataset$redcap_data$melanoma_data |> 
+  count(melanoma_type)
 ```
 
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cancer_mort |> count(Cancer_Type)
-```
-
-</details>
-
-In the count summary output column is typically denoted as 'n'. The same output can be observed by combining `group_by()` and `summarise()` functions as follows.
+**Example 2:** Count the number of records observed in each melanoma type and melanoma molecular mutation.
 
 ```{r}
-#| eval: false
-cancer_mort |> 
-  group_by(Cancer_Type) |> 
-  summarise(n = n())
+immuno_dataset$redcap_data$melanoma_data |> 
+  count(melanoma_type, melanoma_molecular_mutation)
 ```
 
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cancer_mort |> 
-  group_by(Cancer_Type) |> 
-  summarise(n = n())
-```
-
-</details>
-
-**Example 2:** Count the number of cancers observed in each cancer type and age group.
-
-```{r}
-#| eval: false
-cancer_mort |> count(Cancer_Type, Age)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cancer_mort |> count(Cancer_Type, Age)
-```
-
-</details>
-
-#### `sample_n()` helper
-
-The `sample_n()` function is used to randomly select a specified number of rows from a data frame.
-
-**Example 1:** Sample 10 rows from the cancer_mort dataset.
-
-```{r}
-#| eval: false
-cancer_mort |> sample_n(10)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cancer_mort |> sample_n(10)
-```
-
-</details>
-
-**Example 2:** Sample 3 rows randomly from each cancer type.
-
-```{r}
-#| eval: false
-cancer_mort |> 
-  group_by(Cancer_Type) |> 
-  sample_n(3)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-```{r}
-#| echo: false
-#| classes: scrolling
-cancer_mort |> 
-  group_by(Cancer_Type) |> 
-  sample_n(3)
-```
-
-</details>
+::: {.callout-note title = "Try It Yourself" }
 
 Try out the following examples by yourself first.
 
@@ -2458,7 +1625,9 @@ cancer_mort |>
 <details>
   <summary>Check the Answer</summary>
 ```
+
 ```{r}
+#| eval: false
 cancer_mort |> 
   filter(Type == "Incidence") |> 
   group_by(Cancer_Type) |>
@@ -2468,2233 +1637,6 @@ cancer_mort |>
 
 </details>
 
-### Additional `dplyr` functions
 
-In this section, we'll explore several additional functions from the `dplyr` package. We'll demonstrate these functions using both the cms_data and cancer_mort datasets.
-
--   **`across()` function**
-
-This function allows you to apply a transformation or calculation across multiple columns of a data frame. It is often used with functions like `mutate()` or `summarise()`, enabling you to perform the same operation on multiple columns at once.
-
-```{r}
-#| eval: false
-# find the mean and standard deviation of star rating and overall rating for each hospital type. 
-cms_data |> 
-  group_by(hospital_type) |>          
-  summarise(across(                   
-    c(star_rating, overall_rating), 
-    list(mean = mean, sd = sd)))
-```
-
--   **`distinct` function**
-
-This function is used to select unique rows from a data frame, removing any duplicate rows.
-
-```{r}
-#| eval: false
-# find the unique or distinct cancer types
-cancer_mort |> distinct(Cancer_Type)
-```
-
--   **`slice()` function**
-
-This function extracts specific rows from a data frame based on their position. You can specify the row numbers or a range of row numbers to extract.
-
-```{r}
-#| eval: false
-# select a range of rows
-cancer_mort |> slice(2:5)
-
-# drop rows with negative indices
-cancer_mort |> slice(-(10:n()))
-```
-
--   **`slice_head()/slice_tail()` functions**
-
-The `slice_head()` function extracts the first few rows (specified by a number) and the `slice_tail()` function extracts the last few rows (specified by a number) from a data frame.
-
-```{r}
-#| eval: false
-# similar to head(3)
-cancer_mort |> slice_head(n = 3)
-
-# similar to tail(4)
-cancer_mort |> slice_tail(n = 4)
-```
-
--   **`slice_min()/slice_max()` function**
-
-The `slice_min()` function extracts the rows with the minimum values of a specified variable and the `slice_max()` function extracts the rows with the maximum values of a specified variable from a data frame.
-
-```{r}
-#| eval: false
-# 5 rows with the minimum overall rating
-cms_data |> slice_min(overall_rating, n = 5)
-
-# 4 rows with the maximum 5 overall rating
-cms_data |> slice_max(overall_rating, n = 6)
-```
-
--   **`slice_sample()` function**
-
-This function randomly samples a specified number of rows from a data frame.
-
-```{r}
-#| eval: false
-# randomly select 5 rows
-cancer_mort |> slice_sample(n = 5)
-
-# randomly select 3 rows from each groupings
-cancer_mort |> group_by(Age) |> slice_sample(n = 3)
-```
-
--   **`add_row()` function**
-
-This function adds one or more rows to a data frame. You can specify the values for each column of the new rows.
-
-```{r}
-#| eval: false
-# add a row before the 3rd row. Missing values are entered as NA
-cancer_mort |> add_row(Year = 2024, Type = "Mortality", Count = 100, .before = 3)
-```
-
--   **`relocate()` function**
-
-This function allows you to change the position of columns within a data frame. You can specify the target position where you want to move the column to.
-
-```{r}
-#| eval: false
-# move the Cancer type column to be positioned after the Year column
-cancer_mort |> relocate(Cancer_Type, .after = Year)
-```
-
-
-
-
-
-
-# Joining Data Frames
-
-Often, data originates from various sources or files, and the need arises to consolidate them for analysis. These datasets, when merged, are often referred to as relational data due to the inherent relationships between them that we aim to leverage. Within the tidyverse framework, this process of merging related data is termed *joining*. Here, we combine data from multiple datasets based on a common variable or set of variables.
-
-![](images/joining.png)
-
-For illustration purposes, let's use the following two data frames in the subsequent examples.
-
-```{r}
-left = data.frame(
-         key1 = c("K0", "K1", "K2", "K3"),
-         A    = c("A0", "A1", "A2", "A3"),
-         B    = c("B0", "B1", "B2", "B3"))
-
-right = data.frame(
-         key1 = c("K0", "K1", "K1", "K4"),
-         C    = c("C0", "C1", "C2", "C3"),
-         D    = c("D0", "D1", "D2", "D3"))
-```
-
-There are several types of joins commonly used in R outlined below.
-
-### Left Join
-
-A left join returns all rows from the left data frame (the first data frame specified) and matching rows from the right data frame (the second data frame specified). Non-matching rows in the right data frame have NULL (or NA) values in the result.
-
-![](images/joining-left.png)
-
-![](images/left_join.png){fig-align="center" height="230"}
-
-::: columns
-::: {.column width="45%"}
-```{r}
-#| classes: scrolling
-left
-```
-:::
-
-::: {.column width="10%"}
-<!-- empty column to create gap -->
-:::
-
-::: {.column width="45%"}
-```{r}
-#| classes: scrolling
-right
-```
-:::
-:::
-
-```{r}
-#| classes: scrolling
-left_join(left, right, by = "key1")
-```
-
-### Right join
-
-A right join is similar to a left join but returns all rows from the right data frame and matching rows from the left data frame. Non-matching rows in the left data frame have NULL (or NA) values in the result.
-
-![](images/joining-right.png) 
-
-![](images/right_join.png){fig-align="center" height="230"}
-
-::: columns
-::: {.column width="45%"}
-```{r}
-#| classes: scrolling
-left
-```
-:::
-
-::: {.column width="10%"}
-<!-- empty column to create gap -->
-:::
-
-::: {.column width="45%"}
-```{r}
-#| classes: scrolling
-right
-```
-:::
-:::
-
-```{r}
-#| classes: scrolling
-right_join(left, right, by = "key1")
-```
-
-### Inner join
-
-An inner join returns only the rows with matching values in the specified columns (the common key). It combines data from two or more tables or DataFrames based on the intersection of keys, excluding rows that do not have corresponding matches in both tables.
-
-![](images/joining-inner.png)
-
-![](images/inner_join.png){fig-align="center" height="230"}
-
-::: columns
-::: {.column width="45%"}
-```{r}
-#| classes: scrolling
-left
-```
-:::
-
-::: {.column width="10%"}
-<!-- empty column to create gap -->
-:::
-
-::: {.column width="45%"}
-```{r}
-#| classes: scrolling
-right
-```
-:::
-:::
-
-```{r}
-#| classes: scrolling
-inner_join(left, right, by = "key1")
-```
-
-### Full Join
-
-A full join returns all rows from both datasets, filling in NA values for non-matching rows.
-
-![](images/joining-full.png)
-
-![](images/full_join.png){fig-align="center" height="230"}
-
-::: columns
-::: {.column width="45%"}
-```{r}
-#| classes: scrolling
-left
-```
-:::
-
-::: {.column width="10%"}
-<!-- empty column to create gap -->
-:::
-
-::: {.column width="45%"}
-```{r}
-#| classes: scrolling
-right
-```
-:::
-:::
-
-```{r}
-#| classes: scrolling
-full_join(left, right, by = "key1")
-```
-
-::: {.callout-note title = "Try It Yourself" }
-
-Join the three instruments `demographics`, `pathology` and `mortality_data` using suitable joining function.
-
-::: {.callout-caution collapse="true" title = "Solution" }
-
-```{r}
-demo_path <- left_join(demographics, pathology, by = c("record_id"))
-demo_path_mort <- left_join(demo_path, mortality_data, by = c("record_id"))
-```
 
 :::
-
-:::
-
-## Converting Data from Wide to Long Format
-
-To transform the `melanoma_data` table from a wide format to a long format, we use the `pivot_longer()` function. It's important to note that this function duplicates rows. However, the output in 'long format' from `pivot_longer()` is often necessary for ggplot, where each aesthetic or facet category must be a single column of values and for `left_join()`.
-
-This operation will convert multiple columns with counts for each sample into a single column containing all the expression values, as illustrated in the image below.
-
-![](images/piv-long.png){fig-align="center"} 
-
-The `pivot_longer()` function takes three arguments:
-
-1.  **cols =** : a vector indicating the names of the columns to be converted into labels in long form.
-2.  **names_to =** : a name or vector of names for the new column(s) containing the labels from the specified columns.
-3.  \*\*values_to =\* \*: a name for the new column containing the values corresponding to the specified columns.
-
-It's important to note that when using `pivot_wider()`, the new column names need to be enclosed in quotes.
-
-```{r}
-seqdata <- pivot_longer(counts, cols = starts_with("GSM"), 
-                        names_to = "Sample", 
-                        values_to = "Count")
-```
-
-The `cols = starts_with("GSM")` command returns a vector of columns whose names starts with "GSM". `pivot_longer()` will then transform the those columns into two new columns, denoted as "Sample" and "Count." The parameter `names_to = "Sample"` indicates that the new column containing the specified columns (defined by cols) should be named "Sample," while `values_to = "Count"` specifies that the new column containing the values should be named "Count."
-
-::: {.callout-note title = "Try It Yourself" }
-
-Convert the `mel_type___` columns in `melanoma_data` instrument. 
-
-::: {.callout-caution collapse="true" title = "Solution" }
-
-```{r}
-pivot_longer(melanoma_data, cols = starts_with("mel_type___"), 
-                        names_to = "melanoma_type", 
-                        values_to = "checked")
-```
-
-:::
-
-:::
-
-# Visualizing Data
-
-`ggplot2` package simplifies the creation of plots. This package offers a streamlined interface for defining variables to plot, configuring their display, and adjusting visual attributes. Consequently, adapting to changes in the data or transitioning between plot types requires only minimal modifications. This feature facilitates the creation of high-quality plots suitable for publication with minimal manual adjustments.
-
-## Building a Basic Plot
-
-The construction of ggplot graphics is incremental, allowing for the addition of new elements in layers. This approach grants users extensive flexibility and customization options, enabling the creation of tailored plots to suit specific needs.
-
-![](http://ohi-science.org/data-science-training/img/rstudio-cheatsheet-ggplot.png)
-
-To build a ggplot, the following basic templates can be used for different types of plots.
-
-![](images/ggplot.png) 
-
-Three things are required for a ggplot:
-
-### 1. The data
-
-We first specify the data frame that contains the relevant data to create a plot. Here we are sending the 'demo_path_mort' dataset to the `ggplot()` function.
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-# render plot background
-ggplot(demo_path_mort)
-```
-
-This command results in an empty gray panel. We must specify how various columns of the data frame should be depicted in the plot.
-
-### 2. Aesthetics `aes()`
-
-Next, we specify the columns in the data we want to map to visual properties (called aesthetics or `aes` in ggplot2). e.g. the columns for x values, y values and colours.
-
-Since we are interested in generating a scatter plot, each point will have an x and a y coordinate. Therefore, we need to specify the x-axis to represent the year and y-axis to represent the count.
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-ggplot(demo_path_mort, aes(x = cortisol, y = mortality_treatment_time))
-```
-
-This results in a plot which includes the grid lines, the variables and the scales for x and y axes. However, the plot is empty or lacks data points.
-
-### 3. Geometric Representation `geom_()`
-
-Finally, we specify the type of plot (the *geom*). There are different types of geoms:
-
-```{=html}
-<table class="unstyledTable">
-<tbody>
-<tr>
-<td>
-```
-- ![](images/geom_blank.png){height="63"}
-```{=html}
-</td>
-<td>
-```
-`geom_blank()` draws an **empty plot**.
-```{=html}
-</td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_segment.png){height="58"}
-```{=html}
-</td>
-<td>
-```
-`geom_segment()` draws a **straight line**. `geom_vline()` draws a **vertical line** and `geom_hline()` draws a **horizontal line**.
-```{=html}
-</td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_curve.png){height="58"}
-```{=html}
-</td>
-<td>
-```
-`geom_curve()` draws a **curved line**.
-```{=html}
-</td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_path.png){height="58"}
-```{=html}
-</td>
-<td>
-```
-`geom_line()/geom_path()` makes a **line plot**. `geom_line()` connects points from left to right and `geom_path()` connects points in the order they appear in the data.
-```{=html}
-</td>
-</tr>
-<tr>
-<td colspan=2><hr></td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_point.png){height="58"}
-```{=html}
-</td>
-<td>
-```
-`geom_point()` produces a **scatterplot**.
-```{=html}
-</td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_jitter.png){height="58"}
-```{=html}
-</td>
-<td>
-```
-`geom_jitter()` adds a small amount of **random noise** to the points in a scatter plot.
-```{=html}
-</td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_dotplot.png){height="58"}
-```{=html}
-</td>
-<td>
-```
-`geom_dotplot()` produces a **dot plot**.
-```{=html}
-</td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_smooth.png){height="58"}
-```{=html}
-</td>
-<td>
-```
-`geom_smooth()` adds a **smooth trend line to a plot**.
-```{=html}
-</td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_quantile.png){height="58"}
-```{=html}
-</td>
-<td>
-```
-`geom_quantile()` draws **fitted quantile with lines** (a scatter plot with regressed quantiles).
-```{=html}
-</td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_density.png){height="58"}
-```{=html}
-</td>
-<td>
-```
-`geom_density()` creates a **density plot**.
-```{=html}
-</td>
-</tr>
-<tr>
-<td colspan=2><hr></td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_histogram.png){height="58"} 
-```{=html}
-</td>
-<td>
-```
-`geom_histogram()` produces a **histogram**.
-```{=html}
-</td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_bar.png){height="58"} 
-```{=html}
-</td>
-<td>
-```
-`geom_bar()` makes a **bar chart**. Height of the bar is proportional to the number of cases in each group.
-```{=html}
-</td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_col.png){height="58"} 
-```{=html}
-</td>
-<td>
-```
-`geom_col()` makes a **bar chart**. Height of the bar is proportional to the values in data.
-```{=html}
-</td>
-</tr>
-<tr>
-<td colspan=2><hr></td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_boxplot.png){height="58"} 
-```{=html}
-</td>
-<td>
-```
-`geom_boxplot()` produces a **box plot**.
-```{=html}
-</td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_violin.png){height="58"} 
-```{=html}
-</td>
-<td>
-```
-`geom_violin()` creates a **violin plot**.
-```{=html}
-</td>
-</tr>
-<tr>
-<td colspan=2><hr></td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_ribbon.png){height="58"} 
-```{=html}
-</td>
-<td>
-```
-`geom_ribbon()` produces a **ribbon** (y interval defined line).
-```{=html}
-</td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_area.png){height="58"} 
-```{=html}
-</td>
-<td>
-```
-`geom_area()` draws an **area plot**, which is a line plot filled to the y-axis (filled lines).
-```{=html}
-</td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_rect.png){height="58"} 
-```{=html}
-</td>
-<td>
-```
-`geom_rect()`, `geom_tile()` and `geom_raster()` draw **rectangles**.
-```{=html}
-</td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_polygon.png){height="58"} 
-```{=html}
-</td>
-<td>
-```
-`geom_polygon()` draws **polygons**, which are filled paths.
-```{=html}
-</td>
-</tr>
-<tr>
-<td colspan=2><hr></td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_text.png){height="58"}
-```{=html}
-</td>
-<td>
-```
-`geom_text()` adds **text** to a plot.
-```{=html}
-</td>
-</tr>
-<tr>
-<td>
-```
-- ![](images/geom_label.png){height="58"}
-```{=html}
-</td>
-<td>
-```
-`geom_text()` adds **label** to a plot.
-```{=html}
-</td>
-</tr>
-</tbody>
-</table>
-```
-
-The range of geoms available in `ggplot2` can be obtained by navigating to the `ggplot2` package in the Packages tab pane in RStudio (bottom right-hand corner) and scrolling down the list of functions sorted alphabetically to the `geom_...` functions.
-
-Since we are interested in creating a scatter plot, the geometric representation of the data will be in point form. Therefore we use the `geom_point()` function.
-
-To plot the expression of estrogen receptor alpha (ESR1) against that of the transcription factor, GATA3:
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-ggplot(demo_path_mort, aes(x = cortisol, y = creat)) + geom_point(na.rm = T) 
-```
-
-Notice that we use the `+` sign to add a *layer* of points to the plot. This concept bears resemblance to Adobe Photoshop, where layers of images can be rearranged and edited independently. In ggplot, each layer is added over the plot in accordance with its position in the code using the `+` sign.
-
-::: callout-tip
-### A note about `|>` and `+`
-
-`ggplot2` package was developed prior to the introduction of the pipe operator. In ggplot2, the `+` sign functions analogously to the pipe operator in other tidyverse functions, enabling code to be written from left to right.
-:::
-
-## Customizing Plots
-
-### Adding Colour
-
-The above plot could be made more informative. For instance, the additional information regarding the ER status (i.e., ER_IHC column) could be incorporated into the plot. To do this, we can utilize `aes()` and specify which column in the `metabric` data frame should be represented as the color of the points.
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(colour = ER_IHC)) 
-```
-
-Notice that we specify the `colour = ER_IHC` argument in the `aes()` mapping inside the `geom_()` function instead of `ggplot()` function. Aesthetic mappings can be set in both `ggplot()` and individual `geom()` layers and we will discuss the difference in the [Section: Adding Layers](4_Visualization.qmd#sec-adding-layers).
-
-To colour points based on a continuous variable, for example: Nottingham prognostic index (NPI):
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(colour = NPI)) 
-```
-
-In `ggplot2`, a color scale is used for continuous variables, while discrete or categorical values are represented using discrete colors.
-
-Note that some patient samples lack expression values, leading `ggplot2` to remove those points with missing values for ESR1 and GATA3.
-
-### Adding Shape
-
-Let's add shape to points. 
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) + 
-  geom_point(aes(shape = THREEGENE))
-```
-Note that some patient samples have not been classified and ggplot has removed those points with missing values for the three-gene classifier.
-
-Some aesthetics like shape can only be used with categorical variables:
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-#| error: TRUE
-metabric |> ggplot() +
-  geom_point(aes(x = GATA3, y = ESR1, shape = SURVIVAL_TIME))
-```
-
-The shape argument allows you to customize the appearance of all data points by assigning an integer associated with predefined shapes shown below:
-
-![](images/shapes.png){fig-align="center" height="120"}
-
-To use asterix instead of points in the plot: 
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) + 
-  geom_point(shape = 8)
-```
-It would be useful to be able to change the shape of all the points. We can do so by setting the size to a single value rather than mapping it to one of the variables in the data set - this has to be done outside the aesthetic mappings (i.e. outside the `aes()` bit) as above. 
-
-::: callout-tip
-#### Aesthetic Setting vs. Mapping
-
-Instead of mapping an aesthetic property to a variable, you can set it to a single value by specifying it in the layer parameters (outside `aes()`). We map an aesthetic to a variable (e.g., `aes(shape = THREEGENE)`) or set it to a constant (e.g., `shape = 8`). If you want appearance to be governed by a variable in your data frame, put the specification inside `aes()`; if you want to override the default size or colour, put the value outside of `aes()`.
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-#| layout-ncol: 2
-# size outside aes()
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(shape = 8)
-
-# size inside aes()
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(shape = THREEGENE))
-```
-
-The above plots are created with similar code, but have rather different outputs. The first plot **sets** the size to a value and the second plot **maps** (not sets) the size to the three-gene classifier variable. 
-:::
-
-It is usually preferable to use colours to distinguish between different
-categories but sometimes colour and shape are used together when we want to
-show which group a data point belongs to in two different categorical variables.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(colour = CLAUDIN_SUBTYPE, shape = THREEGENE))
-```
-
-### Adding Size and Transparency
-
-We can adjust the size and/or transparency of the points.
-
-Let's first increase the size of points.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(colour = CLAUDIN_SUBTYPE), size = 2)
-```
-
-Note that here we add the size argument outside of the the aesthetic mapping. 
-
-Size is not usually a good aesthetic to map to a variable and hence is not advised. 
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(colour = CLAUDIN_SUBTYPE, size = ER_IHC))
-```
-
-Because this value is discrete, the default size scale uses evenly spaced sizes for points categorized on ER status.
-
-Transparency can be useful when we have a large number of points as we can more easily tell when points are overlaid, but like size, it is not usually mapped to a variable and sits outside the `aes()`.
-
-Let's change the transparency of points. 
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(colour = THREEGENE), alpha = 0.5) 
-```
-
-### Adding Layers {#sec-adding-layers}
-
-We can add another *layer* to this plot using a different geometric representation (or `geom_` function) we discussed previously. 
-
-Let's add trend lines to this plot using the `geom_smooth()` function which provide a summary of the data.
-
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_point(aes(x = GATA3, y = ESR1)) +
-  geom_smooth(aes(x = GATA3, y = ESR1))
-```
-
-Note that the shaded area surrounding blue line represents the standard error bounds on the fitted model.
-
-There is some annoying duplication of code used to create this plot. We've
-repeated the exact same aesthetic mapping for both geoms. We can avoid this by
-putting the mappings in the `ggplot()` function instead.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-#| warning: false
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point() +
-  geom_smooth()
-```
-
-Geom layers specified earlier in the command are drawn first, preceding subsequent geom layers. The sequence of geom layers specified in the command determines their order of appearance in the plot.
-
-If you switch the order of the `geom_point()` and `geom_smooth()` functions above, you'll notice a change in the regression line. Specifically, the regression line will now be plotted underneath the points.
-
-Let’s make the plot look a bit prettier by reducing the size of the points and making them transparent. We’re not mapping size or alpha to any variables, just setting them to constant values, and we only want these settings to apply to the points, so we set them inside `geom_point()`.
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(size = 0.5, alpha = 0.5) +
-  geom_smooth() 
-```
-
-::: callout-tip
-##### Aesthetic Specifications in Plot vs. Layers
-
-Aesthetic mappings can be provided either in the initial `ggplot()` call, in individual layers, or through a combination of both approaches. When there's only one layer in the plot, the method used to specify aesthetics doesn't impact the result.
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-#| layout-ncol: 2
-#| warning: false
-
-# colour argument inside ggplot()
-metabric |> ggplot(aes(x = GATA3, y = ESR1, colour = ER_IHC)) +
-  geom_point(size = 0.5, alpha = 0.5) +
-  geom_smooth() 
-
-# colour argument inside geom_point()
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(colour = ER_IHC), size = 0.5, alpha = 0.5) +
-  geom_smooth() 
-```
-In the left plot, since we specified the colour (i.e., `colour = ER_IHC`) inside the `ggplot()` function, the `geom_smooth()` function will fit regression lines for each type of ER status and will have coloured regression lines as shown above. This is because, when aesthetic mappings are defined in `ggplot()`, at the global level, they’re passed down to each of the subsequent geom layers of the plot.
-
-If we want to add colour only to the points and fit a regression line across all points, we could specify the colour inside `geom_point()` function (i.e., right plot).
-:::
-
-Suppose you've spent a bit of time getting your scatter plot just right and
-decide to add another layer but you're a bit worried about interfering with the code you so lovingly crafted, you can set the `inherit.aes` option to
-`FALSE` and set the aesthetic mappings explicitly for your new layer.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(x = GATA3, y = ESR1, colour = ER_IHC)) +
-  geom_point(size = 0.5, alpha = 0.5) +
-  geom_smooth(aes(x = GATA3, y = ESR1), inherit.aes = FALSE)
-```
-
-### Coordinate Space
-
-`ggplot` automatically selects the scale and type of coordinate space for each axis. The majority of plots utilize Cartesian coordinate space, characterized by linear x and y scales.
-
-We can change the axes limits as follows:
-
-```{r}
-#| fig-align: center
-#| warning: false
-#| layout-ncol: 3
-# assign a variable to the plot
-gata_esrp <- metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(colour = ER_IHC), size = 0.5, alpha = 0.5) +
-  geom_smooth() 
-
-# change both x and y axes
-gata_esrp + lims(x = c(0, 13), y = c(0, 14))
-
-# change x axis
-gata_esrp + xlim(0, NA)  
-
-# change x axis
-gata_esrp + ylim(0, 13)
-```
-
-When modifying the x-axis limit above, we assigned the upper limit as NA. You can leave one value as NA if you wish to calculate the corresponding limit from the range of the data. 
-
-Notice that we assigned a variable named `gata_esrp` to our plot and modify it by adding labels. In `ggplot`, you have the flexibility to assign a variable to plot and then modify it by adding layers to the plot. This approach allows you to progressively build up your visualization, incorporating various elements to convey the desired information effectively.
-
-::: callout-tip
-##### `lims()/xlim()/ylim()` vs. `coord_cartesian()`
-
-When you set the limits using any of the `lims()/xlim()/ylim()` functions, it discards all data points outside the specified range. Consequently, the regression line is computed across the remaining data points. In contrast, `coord_cartesian()` adjust limits **without** discarding the data, thus offering a visual zoom effect. 
-
-```{r}
-#| fig-align: center
-#| warning: false
-#| layout-ncol: 2
-gata_esrp + ylim(7, 10)
-gata_esrp + coord_cartesian(ylim = c(7, 10))
-```
-
-:::
-
-### Axis Labels
-
-By default, `ggplot` use the column names specified inside the `aes()` as the axis labels. We can change this using the `xlab()` and `ylab()` functions.
-
-```{r}
-#| fig-align: center
-#| warning: false
-#| fig-height: 4
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(colour = ER_IHC), size = 0.5, alpha = 0.5) +
-  geom_smooth() +
-  xlab("GATA3 Expression") +
-  ylab("ESR1 Expression")
-```
-
-
-### Customizing Plots
-
-You can customize plots to include a title, a subtitle, a caption or a tag. 
-
-To add a title and/or subtitle:
-
-```{r}
-#| fig-align: center
-#| warning: false
-#| fig-height: 4
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(colour = ER_IHC), size = 0.5, alpha = 0.5) +
-  geom_smooth() +
-  ggtitle(
-    label = "Expression of estrogen receptor alpha against the transcription factor",
-    subtitle = "ESR1 vs GATA3")
-```
-
-We can use the `labs()` function to add a title and additional information. 
-
-```{r}
-#| fig-align: center
-#| warning: false
-#| fig-height: 4
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(colour = ER_IHC), size = 0.5, alpha = 0.5) +
-  geom_smooth() +
-  labs(
-    title = "Expression of estrogen receptor alpha against the transcription factor",
-    subtitle = "ESR1 vs GATA3",
-    caption = "This is a caption",
-    tag = "Figure 1",
-    y = "ESR1 Expression")
-```
-
-### Themes
-
-Themes control the overall appearance of the plot, including background color, grid lines, axis labels, and text styles. ggplot offers several built-in themes, and you can also create custom themes to match your preferences or the requirements of your publication. The default theme has a grey background.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-gata_esrp <- metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(colour = ER_IHC), size = 0.5, alpha = 0.5) +
-  geom_smooth() 
-
-gata_esrp + theme_bw()
-```
-
-Try these themes yourselves: `theme_classic()`, `theme_dark()`, `theme_grey()` (default), `theme_light()`, `theme_linedraw()`, `theme_minimal()`, `theme_void()` and `theme_test()`. 
-
-### Facets
-
-To enhance readability and clarity, we can break the above plot into sub-plots, called *faceting*. *Facets* are commonly used to split a plot into multiple panels based on the values of one or more variables. This can be useful for exploring relationships in the data across different subsets or categories.
-
-To do this, we use the tilde symbol `~` to specify the column name that will form each facet.
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(colour = PR_STATUS), size = 0.5, alpha = 0.5) +
-  geom_smooth() +
-  facet_wrap(~ PR_STATUS)
-```
-
-Note that the aesthetics and geoms including the regression line that were specified for the original plot, are applied to each of the facets.
-
-Alternatively, the variable(s) used for faceting can be specified using `vars()`.
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(colour = PR_STATUS), size = 0.5, alpha = 0.5) +
-  facet_wrap(vars(PR_STATUS))
-```
-
-Faceting is usually better than displaying groups using different colours when
-there are more than two or three groups when it can be difficult to really tell
-which points belong to each group. A case in point is for the three-gene
-classification in the GATA3 vs ESR1 scatter plot we created above. Let's
-create a faceted version of that plot.
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(colour = THREEGENE), size = 0.5, alpha = 0.5) +
-  facet_wrap(vars(THREEGENE))
-```
-
-This helps explain why the function is called `facet_wrap()`. When it has too
-many subplots to fit across the page, it wraps around to another row. We can
-control how many rows or columns to use with the `nrow` and `ncol` arguments.
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(colour = THREEGENE), size = 0.5, alpha = 0.5) +
-  facet_wrap(vars(THREEGENE), nrow = 1)
-```
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(aes(colour = THREEGENE), size = 0.5, alpha = 0.5) +
-  facet_wrap(vars(THREEGENE), ncol = 2)
-```
-
-We can combine faceting on one variable with a colour aesthetic for another
-variable. For example, let's show the tumour stage status (Neoplasm histologic grade) using faceting and the HER2 status using colours.
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-metabric |> ggplot(aes(x = GATA3, y = ESR1, colour = HER2_STATUS)) +
-  geom_point(size = 0.5, alpha = 0.5) +
-  facet_wrap(vars(GRADE))
-```
-
-Instead of this we could facet on more than variable.
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(size = 0.5, alpha = 0.5) +
-  facet_wrap(vars(GRADE, HER2_STATUS))
-```
-
-Faceting on two variables is usually better done using the other faceting
-function, **`facet_grid()`**. Note the change in how the formula is written.
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-metabric |> ggplot(aes(x = GATA3, y = ESR1)) +
-  geom_point(size = 0.5, alpha = 0.5) +
-  facet_grid(vars(GRADE), vars(HER2_STATUS))
-```
-
-Again we can use colour aesthetics alongside faceting to add further information
-to our visualization.
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-metabric |> ggplot(aes(x = GATA3, y = ESR1, colour = CLAUDIN_SUBTYPE)) +
-  geom_point(size = 0.5, alpha = 0.5) +
-  facet_grid(vars(GRADE), vars(HER2_STATUS))
-```
-
-Finally, we can use a `labeller` to change the labels for each of the
-categorical values so that these are more meaningful in the context of this
-plot.
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-grade_labels <- c("1" = "Grade I", "2" = "Grade II", "3" = "Grade III")
-her2_status_labels <- c("Positive" = "HER2 positive", "Negative" = "HER2 negative")
-#
-metabric |> ggplot(aes(x = GATA3, y = ESR1, colour = CLAUDIN_SUBTYPE)) +
-  geom_point(size = 0.5, alpha = 0.5) +
-  facet_grid(vars(GRADE),
-             vars(HER2_STATUS),
-             labeller = labeller(
-               GRADE = grade_labels,
-               HER2_STATUS = her2_status_labels
-              )
-            )
-```
-
-This would certainly be necessary if we were to use ER and HER2 status on one
-side of the grid.
-
-```{r}
-#| fig-height: 4
-#| fig-align: center
-er_status_labels <- c("Positive" = "ER positive", "Negative" = "ER negative")
-#
-metabric |> ggplot(aes(x = GATA3, y = ESR1, colour = CLAUDIN_SUBTYPE)) +
-  geom_point(size = 0.5, alpha = 0.5) +
-  facet_grid(vars(GRADE),
-             vars(ER_IHC, HER2_STATUS),
-             labeller = labeller(
-               GRADE = grade_labels,
-               ER_IHC = er_status_labels,
-               HER2_STATUS = her2_status_labels
-              )
-            )
-```
-
-## Bar chart
-
-The metabric study redefined how we think about breast cancer by identifying and
-characterizing several new subtypes, referred to as *integrative clusters*.
-Let's create a bar chart of the number of patients whose cancers fall within
-each subtype in the metabric cohort.
-
-The `geom_bar` is the geom used to plot bar charts. It requires a single aesthetic mapping of the
-categorical variable of interest to `x`.
-
-```{r bar_plot_1}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_bar(aes(x = INTCLUST))
-```
-
-The dark grey bars are a big ugly - what if we want each bar to be a different
-colour?
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_bar(aes(x = INTCLUST, colour = INTCLUST))
-```
-
-Colouring the edges wasn't quite what we had in mind. Look at the help for
-`geom_bar` to see what other aesthetic we should have used.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_bar(aes(x = INTCLUST, fill = INTCLUST))
-```
-
-What happens if we colour (fill) with something other than the integrative
-cluster?
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_bar(aes(x = INTCLUST, fill = ER_IHC))
-```
-
-We get a stacked bar plot.
-
-Note the similarity in what we did here to what we did with the scatter plot
-- there is a common grammar.
-
-Let's try another stacked bar plot, this time with a categorical variable with
-more than two categories.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_bar(aes(x = INTCLUST, fill = THREEGENE))
-```
-
-We can rearrange the three gene groups into adjacent (dodged) bars by specifying a different position within `geom_bar()`:
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_bar(aes(x = INTCLUST, fill = THREEGENE), position = 'dodge')
-```
-
-What if want all the bars to be the same colour but not dark grey, e.g. blue?
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_bar(aes(x = INTCLUST, fill = "blue"))
-```
-
-That doesn't look right - why not?
-
-You can set the aesthetics to a fixed value but this needs to be outside the
-mapping, just like we did before for size and transparency in the scatter plots.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_bar(aes(x = INTCLUST), fill = "blue")
-```
-
-Setting this inside the `aes()` mapping told ggplot2 to map the colour aesthetic
-to some variable in the data frame, one that doesn't really exist but which is
-created on-the-fly with a value of "blue" for every observation.
-
-::: {.callout-note collapse="true"}
-
-### Expand To Learn About Statistical transformations
-
-You may have noticed that `ggplot2` didn't just plot values from our data set but
-had to do some calculation first for the bar chart, i.e. it had to sum the
-number of observations in each category.
-
-Each geom has a **statistical transformation**. In the case of the scatter plot,
-`geom_point` uses the "identity" transformation which means just use the values
-as they are (i.e. not really a transformation at all). The statistical
-transformation for `geom_bar` is "count", which means it will count the number
-of observations for each category in the variable mapped to the x aesthetic.
-
-You can see which statistical transformation is being used by a geom by looking
-at the `stat` argument in the help page for that geom.
-
-There are some circumstances where you'd want to change the `stat`, for example
-if we already had count values in our table. 
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-#| layout-ncol: 2
-# the previous plot
-metabric |> ggplot() +
-  geom_bar(aes(x = INTCLUST))
-
-# same plot after computing counts and using the identity stat
-counts <- metabric |> count(INTCLUST) 
-counts |> ggplot() +
-  geom_bar(aes(x = INTCLUST, y = n), stat = "identity")
-```
-:::
-
-## Box plot
-
-Box plots (or *box & whisker plots*) are a particular favourite seen in many seminars and papers. Box plots summarize the distribution of a set of values by displaying the minimum and maximum values, the median (i.e. middle-ranked value), and the range of the middle 50% of values (inter-quartile range). The whisker line extending above and below the IQR box define Q3 + (1.5 x IQR), and Q1 - (1.5 x IQR) respectively. 
-
-![](https://miro.medium.com/max/18000/1*2c21SkzJMf3frPXPAR_gZA.png)
-To create a box plot from Metabric dataset:
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(x = ER_IHC, y = GATA3)) +
-  geom_boxplot()
-```
-
-See `geom_boxplot` help to explain how the box and whiskers are constructed and
-how it decides which points are outliers and should be displayed as points.
-
-How about adding another layer to display all the points?
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(x = ER_IHC, y = GATA3)) +
-  geom_boxplot() +
-  geom_point()
-```
-
-Ideally, we'd like these points to be spread out a bit. The help page of `geom_point` fucntion 
-points to `geom_jitter` as more suitable when one of the variables is
-categorical.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(x = ER_IHC, y = GATA3)) +
-  geom_boxplot() +
-  geom_jitter()
-```
-
-Well, that's a bit of a mess. We can bring the `geom_boxplot()` layer forward:
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(x = ER_IHC, y = GATA3)) +
-  geom_jitter() +
-  geom_boxplot(alpha = 0.5) 
-```
-
-Still not the best plot. We can reduce the spread or jitter and make the points smaller and transparent: 
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(x = ER_IHC, y = GATA3)) +
-  geom_boxplot() +
-  geom_jitter(width = 0.3, size = 0.5, alpha = 0.25)
-```
-
-Displaying points in this way makes much more sense when we only have a few
-observations and where the box plot masks the fact, perhaps giving the false
-impression that the sample size is larger than it actually is. Here it makes
-less sense as we have very many observations.
-
-Let's try a colour aesthetic to also look at how estrogen receptor expression
-differs between HER2 positive and negative tumours.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(x = ER_IHC, y = GATA3, colour = HER2_STATUS)) +
-  geom_boxplot() 
-```
-
-## Violin plot
-
-A *violin plot* is used to visualize the distribution of a numeric variable across different categories. It combines aspects of a box plot and a kernel density plot. 
-
-The width of the violin at any given point represents the density of data at that point. Wider sections indicate a higher density of data points, while narrower sections indicate lower density. By default, violin plots are symmetric.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(y = GATA3, x = ER_IHC, colour = HER2_STATUS)) + 
-  geom_violin()
-```
-
-Inside each violin plot, a box plot is often included, showing additional summary statistics such as the median, quartiles, and potential outliers. This helps provide a quick overview of the central tendency and spread of the data within each category.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(y = GATA3, x = ER_IHC, colour = HER2_STATUS)) + 
-  geom_violin() + 
-  geom_boxplot(width = 0.8, alpha = 0.4)
-```
-
-In the above plot, the violin plots and box plots are misaligned. You can read the cause of this [here](https://stackoverflow.com/questions/73900036/boxplot-and-violin-plot-misaligned-in-ggplot2-for-only-one-level-of-the-x-axis). 
-
-To align them, we can use the `position_dodge()` function to manually adjusting the horizontal position as follows. 
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(y = GATA3, x = ER_IHC, colour = HER2_STATUS)) + 
-  geom_violin(position = position_dodge(0.8)) + 
-  geom_boxplot(width = 0.8, alpha = 0.4)
-```
-
-## Histogram
-
-The geom for creating histograms is, rather unsurprisingly, `geom_histogram()`.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_histogram(aes(x = AGE_AT_DIAGNOSIS))
-```
-
-The warning message hints at picking a more optimal number of bins by specifying
-the `binwidth` argument.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_histogram(aes(x = AGE_AT_DIAGNOSIS), binwidth = 5)
-```
-
-Or we can set the number of bins.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_histogram(aes(x = AGE_AT_DIAGNOSIS), bins = 20)
-```
-
-These histograms are not very pleasing, aesthetically speaking - how about some
-better aesthetics?
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_histogram(
-    aes(x = AGE_AT_DIAGNOSIS), 
-    bins = 20, 
-    colour = "darkblue", 
-    fill = "grey")
-```
-
-## Density plot
-
-Density plots are used to visualize the distribution of a continuous variable in a dataset. These are essentially smoothed histograms, where the area under the curve for each sub-group will sum to 1. This allows us to compare sub-groups of different size.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() + 
-  geom_density(aes(x = AGE_AT_DIAGNOSIS, colour = INTCLUST))
-```
-
-## Categorical variables -- factors
-
-Several of the variables in the Metabric data set are categorical. Some of these have been read into R as character types (e.g. the three gene classifier), other as numerical values (e.g.
-tumour stage). We also have some binary variables that are essentially categorical
-variables but with only 2 possible values (e.g. ER status).
-
-In many of the plots given above, `ggplot2` has treated character variables as
-categorical in situations where a categorical variable is expected. For example,
-when we displayed points on a scatter plot using different colours for each
-three gene classification, or when we created separate box plots in the same graph
-for ER positive and negative patients.
-
-But what about when our categorical variable has been read into R as a
-continuous variable, e.g. `Tumour_stage`, which is read in as a double type.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_point(aes(x = GATA3, y = ESR1, colour = TUMOR_STAGE))
-```
-
-```{r}
-table(metabric$TUMOR_STAGE)
-```
-
-Tumour stage has only 5 discrete states but `ggplot2` doesn't know these are
-supposed to be a restricted set of values and has used a colour scale to show
-them as if they were continuous. We need to tell R that these are categorical (or factors).
-
-Let's convert our tumour stage variable to a factor using the `as.factor()` function.
-
-```{r}
-#| classes: scrolling
-metabric$TUMOR_STAGE <- as.factor(metabric$TUMOR_STAGE)
-metabric |> select(PATIENT_ID, TUMOR_STAGE) |> head()
-```
-
-R actually stores categorical variables as integers but with some additional
-metadata about which of the integer values, or 'levels', corresponds to each
-category.
-
-```{r}
-typeof(metabric$TUMOR_STAGE)
-class(metabric$TUMOR_STAGE)
-levels(metabric$TUMOR_STAGE)
-```
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_point(aes(x = GATA3, y = ESR1, colour = TUMOR_STAGE))
-```
-
-In this case the order of the levels makes sense but for other variables you
-may wish for more control over the ordering. Take the integrative cluster
-variable for example. We created a bar plot of the numbers of patients in the
-Metabric cohort within each integrative cluster. Did you notice the ordering of
-the clusters? 10 came just after 1 and before 2. That looked a bit odd as we'd
-have naturally expected it to come last of all. R, on the other hand, is
-treating this vector as a character vector (mainly because of the 'ER-' and
-'ER+' subtypes of cluster 4, and sorts the values into alphanumerical order.
-
-```{r}
-metabric$INTCLUST <- as.factor(metabric$INTCLUST)
-levels(metabric$INTCLUST)
-```
-
-As discussed [Section: Factors](1_Introduction.qmd#sec-factors), we can create a factor using
-the `factor()` function and specify the levels using the `levels` argument.
-
-```{r}
-metabric$INTCLUST <- factor(metabric$INTCLUST, levels = c("1", "2", "3", "4ER-", "4ER+", "5", "6", "7", "8", "9", "10"))
-levels(metabric$INTCLUST)
-```
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_bar(aes(x = INTCLUST, fill = INTCLUST))
-```
-
-### Line plot
-
-A *line plot* is used to display the trend or pattern in data over a continuous range of values, typically along the x-axis (horizontal axis). 
-
-Before we create a line plot, let's start by reading a subset of cancer_mort dataset using the `read_csv()` function:
-
-```{r}
-#| message: false
-library(tidyverse)
-# first read the dataset
-cancer_mort_full <- read_csv("data/Australian_Cancer_Incidence_and_Mortality.csv")  
-# lets consider the rows with cancer types that starts with B letters only. 
-# this is done for illustartion purposes. 
-cancer_mort <- cancer_mort_full |> filter(str_detect(Cancer_Type, '^B[a-z]+'))
-```
-
-Next, we filter the cancer_mort data frame to plot only the counts for the female patients in the age group 55-59 and are categorized as moratality cases. 
-
-```{r}
-# define a new subset from cancer_mort dataset
-cancer_mort_55 <- cancer_mort |> 
-  filter(Age == '55-59' & Type == "Mortality", Sex == 'Female')
-```
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-cancer_mort_55 |> ggplot(aes(x = Year, y = Count)) + 
-  geom_line(aes(colour = Cancer_Type)) 
-```
-
-Another aesthetic available for `geom_line` is linetype.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-cancer_mort_55 |> ggplot(aes(x = Year, y = Count)) + 
-  geom_line(aes(linetype = Cancer_Type)) 
-```
-
-## Saving plot images
-
-Use `ggsave()` to save the last plot you displayed.
-
-```{r eval = FALSE}
-ggsave("integrative_cluster.png")
-```
-
-You can alter the width and height of the plot and can change the image file type.
-
-```{r eval = FALSE}
-ggsave("integrative_cluster.pdf", width = 20, height = 12, units = "cm")
-```
-
-You can also pass in a plot object you have created instead of using the last
-plot displayed. See the help page (`?ggsave`) for more details.
-
-
-
-
-
-
-
-
-# Step 2: Tidy Data
-
-Tidy data is a structured and organized format for presenting data that follows a simple convention: variables are placed in columns, observations are placed in rows and values are placed in cells. This standardized arrangement makes it easy to work with and analyze data efficiently. The principles of tidy data, popularized by Hadley Wickham, are designed to promote consistency and ease of use in data analysis.
-
-![](https://r4ds.hadley.nz/images/tidy-1.png){fig-align="center"}
-
-This is the second step in the tidyverse workflow.
-
-![](images/life-cycle-2.png){fig-align="center"}
-
-Let's take a look at some examples.
-
-Data is often entered in a wide format, where each row typically represents a site, subject, or patient, and there are multiple observation variables containing the same type of data.
-
-For instance, consider the AirPassengers dataset. It contains information on monthly airline passenger numbers from 1949 to 1960. In this dataset, each row corresponds to a single year, and the columns represent each month from January to December.
-
-```{r}
-#| eval: false
-AirPassengers
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-AirPassengers
-```
-
-```{=html}
-</details>
-```
-
-Wide format is intuitive for data entry. But it is less so for data analysis. Consider calculating the monthly mean; where would you place it? Would it be another row?
-
-Data needs to be reshaped to conform to the tidy data structure. It involves using four primary verbs (or pairs of opposites):
-
--   Convert columns into rows (`pivot_longer()`).
--   Convert rows into columns (`pivot_wider()`).
--   Convert a character column into multiple columns (`separate_wider_delim()` and `separate_wider_position()`).
--   Combine multiple character columns into a single column (`unite()`).
-
-![](images/tidy-data-verbs.png){fig-align="center"}
-
-First, load the `tidyr` package. Since you have already installed the tidyverse, you should be able to load it directly as follows (otherwise install it using the command `install.packages("tidyverse")` if necessary):
-
-```{r}
-library(tidyverse)
-```
-
-## Converting data from wide to long format
-
-First read the counts file called GSE60450_normalized_data.csv that is in a folder called data (i.e. the path to the file should be data/GSE60450_normalized_data.csv).
-
-```{r}
-#| eval: false
-#| classes: scrolling
-#| warning: false
-counts <- read_csv("data/GSE60450_normalized_data.csv")
-head(counts)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-#| warning: false
-counts <- read_csv("data/GSE60450_normalized_data.csv")
-head(counts)
-```
-
-```{=html}
-</details>
-```
-
-To transform this table from a wide format to a long format, we use the `pivot_longer()` function. It's important to note that this function does not create tidy data as it duplicates rows. However, the output in 'long format' from `pivot_longer()` is often necessary for ggplot, where each aesthetic or facet category must be a single column of values and for `left_join()`, which will be introduced later.
-
-This operation will convert multiple columns with counts for each sample into a single column containing all the expression values, as illustrated in the image below.
-
-![](images/piv-long.png){fig-align="center"} The `pivot_longer()` function takes three arguments:
-
-1.  **cols =** : a vector indicating the names of the columns to be converted into labels in long form.
-2.  **names_to =** : a name or vector of names for the new column(s) containing the labels from the specified columns.
-3.  \*\*values_to =\* \*: a name for the new column containing the values corresponding to the specified columns.
-
-It's important to note that when using `pivot_wider()`, the new column names need to be enclosed in quotes.
-
-```{r}
-seqdata <- counts |> 
-  pivot_longer(cols = starts_with("GSM"), 
-               names_to = "Sample", 
-               values_to = "Count")
-```
-
-The `cols = starts_with("GSM")` command returns a vector of columns whose names starts with "GSM". `pivot_longer()` will then transform the those columns into two new columns, denoted as "Sample" and "Count." The parameter `names_to = "Sample"` indicates that the new column containing the specified columns (defined by cols) should be named "Sample," while `values_to = "Count"` specifies that the new column containing the values should be named "Count."
-
-```{r}
-#| eval: false
-#| classes: scrolling
-seqdata
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-seqdata
-```
-
-```{=html}
-</details>
-```
-
-Alternatively, we could achieve the same outcome by specifying a column range using the following command:
-
-```{r}
-seqdata <- counts |> 
-  pivot_longer(cols = GSM1480291:GSM1480302, 
-               names_to = "Sample", 
-               values_to = "Count")
-```
-
-We can also specify the columns we don't want to reformat, and `pivot_longer()` will then reformat all the columns except those. To achieve this, we place a minus sign ("-") in front of the column names that we wish to exclude. This is a commonly used approach with `pivot_longer()`, as it can be more convenient to exclude columns we don't need rather than explicitly include the ones we want.
-
-```{r}
-seqdata <- counts |> 
-  pivot_longer(cols = -c(X, gene_symbol), 
-               names_to = "Sample", 
-               values_to = "Count")
-```
-
-## Converting data from long to wide format
-
-First, read the annotation file called GSE60450_annotation.csv (the path to the file should be data/GSE60450_annotation.csv).
-
-```{r}
-#| eval: false
-#| classes: scrolling
-#| warning: false
-annot <- read_csv("data/GSE60450_annotation.csv")
-head(annot)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-#| warning: false
-annot <- read_csv("data/GSE60450_annotation.csv")
-head(annot)
-```
-
-```{=html}
-</details>
-```
-
-To transform this table so that it conforms to the tidy principles, we use the `pivot_wider()` function.
-
-This operation will convert multiple rows with type and annotation into columns containing the Symbol and Gene_name, as illustrated in the image below.
-
-![](images/piv-wide.png){fig-align="center"}
-
-The `pivot_wider()` function takes two arguments:
-
-1.  **names_from =** : a name or a vector of names of column(s) containing the labels that will be transformed into the new column names.
-2.  **values_from =** : a name or a vector of names of column(s) containing the values that will fill the new columns.
-
-In our scenario, to reshape the annot data frame, we will use the column names Type and Annotation:
-
-```{r}
-annot_tidy <- annot |> 
-  pivot_wider(names_from = Type, 
-              values_from = Annotation)
-```
-
-The above operation changes the 'shape' of the dataframe from a longer format (more rows) to a wider format (more columns). While the original table consists of 40 rows, using `pivot_wider()` results in only 20 rows. This reduction is due to the de-duplication of rows during the creation of new columns.
-
-```{r}
-#| eval: false
-#| classes: scrolling
-annot_tidy
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-annot_tidy
-```
-
-```{=html}
-</details>
-```
-
-It's important to note that since we only have two distinct labels in the Type column, we are essentially replacing the existing two columns with just two new columns. Consequently, the shape of the output doesn't technically become wider than the input data frame. However, when there are more than two unique labels in the names_from column, the output will indeed become wider compared to the input.
-
-## Separating Columns
-
-First, read the metadata file called GSE60450_metadata.csv (the path to the file should be data/GSE60450_metadata.csv).
-
-```{r}
-#| eval: false
-#| classes: scrolling
-#| warning: false
-metadata <- read_csv("data/GSE60450_metadata.csv")
-head(metadata)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-#| warning: false
-metadata <- read_csv("data/GSE60450_metadata.csv")
-head(metadata)
-```
-
-```{=html}
-</details>
-```
-
-To transform this table so that it conforms to the tidy principles, we use the `separate_wider_position()`/`separate_wider_delim()` function. This operation will separate characteristic column into 3 separate columns containing the tissue_type, immunophenotype and development_stage, as illustrated in the image below.
-
-![](images/separate.png){fig-align="center"}
-
-The `separate_wider_delim()` function takes three arguments:
-
-1.  **cols =** : a name or a vector of names of the column(s) that requires separation into multiple columns.
-2.  **delim =** : delimeter (or separator) between values. This is same as the `delim =` in `read_delim()`.
-3.  **names =** : a vector containing column names for the the new columns.
-
-To separate characteristic column in the metadata data frame into three separate columns based on the delimeter ; (semi colon), we can use the `separate_wider_delim()` function:
-
-```{r}
-#| eval: false
-#| classes: scrolling
-metadata_lform <- metadata |> 
-  separate_wider_delim(cols = characteristics, 
-                       delim =";",
-                       names = c("tissue_type", "immunophenotype", "development_stage"))
-metadata_lform
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-metadata_lform <- metadata |> 
-  separate_wider_delim(cols = characteristics, 
-                       delim =";",
-                       names = c("tissue_type", "immunophenotype", "development_stage"))
-metadata_lform
-```
-
-```{=html}
-</details>
-```
-
-The `separate_wider_position()` function splits at fixed widths and takes two arguments:
-
-1.  **cols =** : a name or a vector of names of the column(s) that requires separation into multiple columns.
-2.  **widths =** : a named vector containing numbers where the names become the new column names and values specify the column widths.
-
-For instance, we can divide the gene_id column into three separate columns to evaluate the functionality of this operation (this is provided purely as an example):
-
-```{r}
-#| eval: false
-#| classes: scrolling
-metadata_lform |> 
-  separate_wider_position(cols = gene_id, 
-                          widths = c(code = 3, prefix = 4, id = 3))
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-metadata_lform |> 
-  separate_wider_position(cols = gene_id, 
-                          widths = c(code = 3, prefix = 4, id = 3))
-```
-
-```{=html}
-</details>
-```
-
-## Uniting Columns
-
-The `unite()` function is the complement of `separate()`. Therefore, let's revert what we did in the previous section to combine multiple columns to a single column as illustrated in the image below.
-
-![](images/unite.png){fig-align="center"}
-
-The `unite()` function takes three arguments:
-
-1.  **col =** : name of the new column that will contain the united values.
-2.  **... =** : a vector containing column names to unite.
-3.  **sep =** : delimeter (or separator) this is same as the `delim =` in `read_delim()`. If we don't specify a separator to insert between the combined values, they will be separated by \_ (underscores).
-
-To separate characteristic column in the metadata data frame into three separate columns:
-
-```{r}
-#| eval: false
-#| classes: scrolling
-metadata_lform |> 
-  unite(col = characteristics, 
-        tissue_type, immunophenotype, development_stage,
-        sep = ",")
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-metadata_lform |> 
-  unite(col = characteristics, 
-        tissue_type, immunophenotype, development_stage,
-        sep = ",")
-```
-
-```{=html}
-</details>
-```
-
-## Missing Values
-
-A value can be missing in one of two possible ways:
-
--   Explicitly, meaning it is flagged with NA.
--   Implicitly, implying that it is just not present in the data.
-
-Let's illustrate this idea with a very simple data frame:
-
-```{r}
-#| eval: false
-#| classes: scrolling
-covid_vac <- data.frame(
-    year = c(2020, 2020, 2021, 2021, 2021,  2023, 2023,
-             2023, 2024, 2024), 
-    vaccine_type = c("Pfizer", "Moderna", "Pfizer", "Moderna", "Novavax", 
-                   "Pfizer", "Moderna", 
-                  "Novavax", "Moderna", NA),
-    count = c(0, 3, 63, 88, 51,
-               38, 19,
-              5, 9, 7)
-)
-covid_vac
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-covid_vac <- data.frame(
-    year = c(2020, 2020, 2021, 2021, 2021,  2023, 2023,
-             2023, 2024, 2024), 
-    vaccine_type = c("Pfizer", "Moderna", "Pfizer", "Moderna", "Novavax", 
-                   "Pfizer", "Moderna", 
-                  "Novavax", "Moderna", NA),
-    count = c(0, 3, 63, 88, 51,
-               38, 19,
-              5, 9, 7)
-)
-covid_vac
-```
-
-```{=html}
-</details>
-```
-
-In this dataset, we identify two occurrences of missing values:
-
-1.  The vaccine_type in 2024 with a count of 7 is explicitly missing, denoted by the presence of NA in the cell where its value should be.
-2.  The counts for the Novavax vaccine in 2020 and Pfizer, Novavax vaccines in 2024, are implicitly missing, as they do not appear in the dataset at all.
-
-### `is.na()`
-
-To identify missing values we can use `is.na()` function which returns a logical vector with TRUE in the element locations that contain missing values represented by NA.
-
-```{r}
-#| eval: false
-#| classes: scrolling
-is.na(covid_vac)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-is.na(covid_vac)
-```
-
-```{=html}
-</details>
-```
-
-```{r}
-#| eval: false
-is.na(covid_vac$vaccine_type)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-is.na(covid_vac$vaccine_type)
-```
-
-```{=html}
-</details>
-```
-
-To identify the location or the number of NAs we can use the `which()` and `sum()` functions:
-
-```{r}
-#| eval: false
-#| classes: scrolling
-which(is.na(covid_vac))
-sum(is.na(covid_vac))
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-which(is.na(covid_vac))
-sum(is.na(covid_vac))
-```
-
-```{=html}
-</details>
-```
-
-### `na.omit()`
-
-To omit all rows containing missing values, we can use `na.omit()` function in base R:
-
-```{r}
-#| eval: false
-na.omit(covid_vac)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-na.omit(covid_vac)
-```
-
-```{=html}
-</details>
-```
-
-### `complete()`
-
-We can use the `complete()` function to make our dataset more complete or to make missing values explicit in tidy data:
-
-```{r}
-#| eval: false
-#| classes: scrolling
-covid_vac |> complete(year, vaccine_type)
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-covid_vac |> complete(year, vaccine_type)
-```
-
-```{=html}
-</details>
-```
-
-This function add missing values for potential combinations of year and vaccine_type. One problem is that R assumes NA in status as one of the combinations. To fix this, we can specify the labels of status to be considered as follows:
-
-```{r}
-#| eval: false
-#| classes: scrolling
-covid_vac |> complete(year, vaccine_type = c("Pfizer", "Moderna", "Novavax"))
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-covid_vac |> complete(year, vaccine_type = c("Pfizer", "Moderna", "Novavax"))
-```
-
-```{=html}
-</details>
-```
-
-We can use the fill argument to assign the fill value:
-
-```{r}
-#| eval: false
-#| classes: scrolling
-covid_vac |> complete(year, 
-                      vaccine_type = c("Pfizer", "Moderna", "Novavax"),
-                       fill = list(count = 0))
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-covid_vac |> complete(year, 
-                      vaccine_type = c("Pfizer", "Moderna", "Novavax"),
-                       fill = list(count = 0))
-```
-
-```{=html}
-</details>
-```
-
-We can use the `full_seq()` function from `tidyr` to fill out the data frame with all years from 2020 to 2024 and assign vaccination types and count values of 0 to those years and for which there was no observation.
-
-```{r}
-#| eval: false
-covid_vac |> complete(year = full_seq(year, period = 1), 
-                      vaccine_type = c("Pfizer", "Moderna", "Novavax"),
-                       fill = list(count = 0))
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-covid_vac |> complete(year = full_seq(year, period = 1), 
-                      vaccine_type = c("Pfizer", "Moderna", "Novavax"),
-                       fill = list(count = 0))
-```
-
-```{=html}
-</details>
-```
-
-### `fill()`
-
-The `fill()` function is used to fill missing values in a data frame, particularly within columns. 
-
-Let's first make missing values in the covid_vac dataset explicit and assign it to a data frame named covid_vac_comp. 
-
-```{r}
-covid_vac_comp <-  covid_vac |> 
-  complete(year = full_seq(year, period = 1), 
-           vaccine_type = c("Pfizer", "Moderna", "Novavax"))
-```
-
-We can specify the direction to fill the missing values using the argument `.direction`. Remember to specify the list of columns to fill. 
-
-```{r}
-#| eval: false
-covid_vac_comp |> fill(count, .direction = "down")
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-covid_vac_comp |> fill(count, .direction = "down")
-```
-
-```{=html}
-</details>
-```
-
-Similarly, we can fill upwards as follows:
-
-```{r}
-#| eval: false
-covid_vac_comp |> fill(count, .direction = "up")
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
-```
-
-```{r}
-#| echo: false
-#| classes: scrolling
-covid_vac_comp |> fill(count, .direction = "up")
-```
-
-```{=html}
-</details>
-```
-
-Once the data is structured and organized according to tidy principles, we can begin manipulating and transforming it. The next section illustrates how this can be accomplished using the `dplyr` package from the tidyverse package suit.
