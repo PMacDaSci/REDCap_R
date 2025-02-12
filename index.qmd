@@ -187,6 +187,7 @@ On this course we will be making use of several packages designed for importing 
 - After starting RStudio, at the console type: (look for the 'Console' tab and type at the `>` prompt)
 
 ```{r}
+#| eval: false
 install.packages(c("tidyverse", "REDCapR", "REDCapTidieR", "httr", "jsonlite"))
 ```
 

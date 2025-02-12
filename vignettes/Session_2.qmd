@@ -6,6 +6,9 @@ Common tasks in working with data include actions like removing rows or columns,
 
 In this workshop, we'll guide you through the process of data manipulation in R, starting with the tidyverse. The tidyverse is a collection of packages that align with a data science philosophy developed by Hadley Wickham and the RStudio team. Many users find it to be a more intuitive way to grasp R concepts. Although some tasks may be more straightforward in base-R, we'll also highlight those aspects.
 
+```{r}
+library(tidyverse)
+```
 
 
 # Joining Data Frames
@@ -194,6 +197,7 @@ The `pivot_longer()` function takes three arguments:
 It's important to note that when using `pivot_wider()`, the new column names need to be enclosed in quotes.
 
 ```{r}
+#| eval: false
 seqdata <- pivot_longer(counts, cols = starts_with("GSM"), 
                         names_to = "Sample", 
                         values_to = "Count")
@@ -208,6 +212,7 @@ The `cols = starts_with("GSM")` command returns a vector of columns whose names 
 ::: {.callout-caution collapse="true" title = "Solution" }
 
 ```{r}
+#| eval: false
 melanoma_data_long <- pivot_longer(melanoma_data, cols = starts_with("melanoma_type"), 
                         names_to = "melanoma_type", 
                         values_to = "checked")
@@ -220,6 +225,7 @@ melanoma_data_long <- pivot_longer(melanoma_data, cols = starts_with("melanoma_t
 ::: {.callout-caution collapse="true" title = "Solution" }
 
 ```{r}
+#| eval: false
 melanoma_data_long <- melanoma_data_long |> filter(checked == TRUE)
 ```
 

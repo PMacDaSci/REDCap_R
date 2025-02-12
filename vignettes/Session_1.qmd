@@ -1,3 +1,6 @@
+---
+format: html
+---
 
 # Basics of R Programming Language
 
@@ -546,7 +549,7 @@ For the sake of reproducibility, it's crucial to regularly delete your objects a
 
 In this workshop, we are using a dummy Immunotherapy dataset on REDCap filled with randomly generated data. Therefore, note that in some cases the data can make no sense. However, this will be useful for learning how to import data into R, data manipulation and basic visualization. 
 
-This dataset contains 15 instruments or forms namely: Demographics, Melanoma Data, Adjuvant Therapy, Systemic Therapy for Advanced Disease, Melanoma CNS Metastases, Adverse Events, Baseline Visit, Checkpoint Inhibitor Treatment, Immune Related Adverse Events (irAEs), Pathology, Hypophysitis CT/MRI Imaging, PET irAE Imaging, PPI and Antibiotic use during treatment with CPIs, Response Data, and Mortality Data.       
+This dataset contains 15 instruments or forms namely: Demographics, Melanoma Data, Adjuvant Therapy, Systemic Therapy for Advanced Disease, Melanoma CNS Metastases, Adverse Events, Baseline Visit, Checkpoint Inhibitor Treatment, Immune Related Adverse Events (irAEs), Pathology, PET irAE Imaging, PPI and Antibiotic use during treatment with CPIs, Response Data, and Mortality Data.       
 
 ![](images/record-status-dashboard.png)
 
@@ -763,6 +766,7 @@ immuno_some_records <- redcap_read(
 immuno_some_records
 ```
 
+
 #### Read a subset of fields
 
 If you only need specific variables (e.g., record_id, dob, gender), you can specify a list of field names in the fields argument of `redcap_read()`.
@@ -797,6 +801,7 @@ Handling these *structured data formats* in R requires additional steps for clea
 
 To address these challenges, the `REDCapTidieR` package extends the functionality of `REDCapR`, making it easier to analyze complex REDCap datasets. 
 
+
 #### Reading all REDCap data
 
 Unlike `REDCapR`, which returns a single large dataframe, `REDCapTidieR` automatically structures and organizes the data by breaking it into separate tibbles, each representing a different REDCap instrument. This makes it easier to work with studies involving multiple forms and events.
@@ -811,15 +816,17 @@ requireNamespace("REDCapTidieR")
 To import the entire dataset while maintaining **structured tables** (or *supertibble*), use `read_redcap()`:
 
 ```{r}
+#| warning: false
 # Load required packages
 library(REDCapTidieR)
 
 # Read entire REDCap project data
-immuno <- read_redcap(redcap_uri = uri, token = token)
+immuno <- read_redcap(redcap_uri = uri, token = token, raw_or_label = "raw")
 
 # print the structure of imported data
-immuno
+head(immuno)
 ```
+
 
 # Exploring the Data
 
@@ -888,6 +895,7 @@ immuno_instrument_list |>
   str(max.level = 1)
 ```
 
+
 ## Adding variable labels with the labelled package
 
 `REDCapTidieR` package allows you to attach labels to variables in the supertibble. Variable labels can make data exploration easier. 
@@ -925,6 +933,7 @@ These labels are the REDCap **field labels** that prompt data entry in the REDCa
 In the `demographics` instrument, a label has a trailing colon `:` (check the label of `autoimmune_disease_select___9` variable below). This won't look good as a variable label so let's remove it. 
 
 ```{r}
+#| classes: scrolling
 labelled::look_for(demographics)
 ```
 
@@ -951,6 +960,7 @@ To find out about other helpers included with REDCapTidieR, see `` ?`format-help
 The `format_labels` argument will also accept multiple functions in a vector or list. You can pass any function that takes a character vector and returns a modified character vector to `format_labels`. In the following example, we remove the trailing colon with `fmt_strip_trailing_colon()` and then make the labels lower case with `base::tolower()`.
 
 ```{r}
+#| classes: scrolling
 immuno |>
   make_labelled(
     format_labels = c(
@@ -997,7 +1007,7 @@ This section demonstrates different ways to get to know the `immuno` dataset and
 When the name of the object is typed, the first few lines along with some information, such as the number of rows are displayed:
 
 ```{r}
-immuno
+head(immuno)
 ```
 
 To view any column displayed above in the `immuno` object, you can specify the column number within `[[]]` or column name followed by `$`.
@@ -1199,14 +1209,17 @@ Each operation takes the output of the previous operation as its input, making i
 
 # Data manipulation with \`dplyr\` functions
 
-You'll primarily use six key `dplyr` functions for data manipulations:
+Common tasks in working with data include actions like filtering rows or columns, performing calculations, or adding new columns. This sort of operations is known as data manipulation. It is the process of cleaning, organizing, and transforming raw data into a more structured and usable format for analysis.
+
+In this workshop, we'll guide you through the process of data manipulation in R, starting with the tidyverse. The tidyverse is a collection of packages that align with a data science philosophy developed by Hadley Wickham and the RStudio team. Many users find it to be a more intuitive way to grasp R concepts. 
+
+You'll primarily use five key `dplyr` functions for data manipulations:
 
 1.  **`filter()`:** pick observations based on their values.
 2.  **`select()`:** pick variables by their names.
 3.  **`mutate()`:** create new variables using functions applied to existing variables.
 4.  **`summarise()`:** collapse multiple values into a single summary.
-5.  **`group_by()`:** group the rows based on specified criteria.
-6.  **`arrange()`:** reorder the rows based on specified criteria.
+5.  **`arrange()`:** reorder the rows based on specified criteria.
 
 If you've already installed the tidyverse package (if not, you can do so by running the command: `install.packages("tidyverse")`), let's proceed to load it into our R session first:
 
@@ -1260,7 +1273,7 @@ We can use logical operators like and `&`, or `|` to combine multiple conditions
 
 ```{r}
 immuno_dataset$redcap_data$mortality_data |> 
-  filter(mortality_cause == "melanoma progression" & mortality_date > "2023-01-01") |> 
+  filter(mortality_cause == "melanoma progression" & mortality_date > as.Date("2023-01-01")) |> 
   head(20)
 ```
 
@@ -1514,67 +1527,43 @@ immuno_dataset$redcap_data$melanoma_data |>
   count(melanoma_type, melanoma_molecular_mutation)
 ```
 
+## Try It Yourself
+
 ::: {.callout-note title = "Try It Yourself" }
 
 Try out the following examples by yourself first.
 
-1.  Find the total number of male deaths in each year.
+1. Find patients who have stage III or IV disease (`mel_first_stage` column) and the first recurrence (`mel_date_diag`) is after 2021-03-01.
 
-To find the total number of male deaths in each year, we begin by filtering out the rows where the Sex column contains "Male" and the type column conatins "Mortality", as we are only interested in male deaths.
+*Hint: Use `melanoma_data` instrument*
 
-```{r}
-#| eval: false
-cancer_mort |> filter(Sex == "Male" & Type == "Mortality")
-```
-
-Since we need to compute the total number of deaths **in each year**, we group this filtered data frame by year. This will create a grouping for each year. This grouping allows us to compute the total number of deaths (i.e., Counts) for each year.
+::: {.callout-caution collapse="true" title = "Solution" }
 
 ```{r}
 #| eval: false
-cancer_mort |> 
-  filter(Sex == "Male" & Type == "Mortality") |> 
-  group_by(Year)
+immuno_dataset$redcap_data$melanoma_data |> 
+  filter(
+    mel_first_stage %in% c("Stage III", "Stage IV") & 
+    mel_date_diag > as.Date("2021-03-01"))
 ```
 
-Putting these operations/functions together, we obtain the final answer:
+:::
 
-```{=html}
-<details>
-  <summary>Check the Answer</summary>
-```
+
+2.  Identify patients whose first response (`overall_response`) and best response on PET (`best_res_pet`) were either CMR (Complete metabolic response) or PMR (Partial metabolic response). Display only relevant columns: patient ID (`record_id`), first response (`overall_response`), and best PET response (`best_res_pet`).
+
+*Hint: Use `response_data` instrument*
+
+::: {.callout-caution collapse="true" title = "Solution" }
+
 ```{r}
-#| eval: false
-cancer_mort |> 
-  filter(Sex == "Male" & Type == "Mortality") |> 
-  group_by(Year) |> 
-  summarise(tot_male_deaths = sum(Count))
+immuno_dataset$redcap_data$response_data |> 
+  filter(best_res_pet %in% c("Complete metabolic response", "Partial metabolic response"), 
+         overall_response %in% c("Complete metabolic response", "Partial metabolic response")) |> 
+  select(record_id, best_res_pet, overall_response)
 ```
 
-</details>
-
-2.  Find the top three cancer types and the age group with the highest average cancer incidences reported across all years.
-
-**Hints:**
-
--   Since we are concerned only about cancer incidences, first filter the dataset using `filter()` function to include only the rows with cancer incidences.
--   Next, compute the average of cancer incidences reported across all years. If we use `summarise()` function next, we will have a single average value for the whole data frame. However, this question asks us to find the top three cancer types and age group, which means we need to compute the average after grouping the rows based on cancer type and age group. This can be achieved using the `group_by()` function with multiple columns as arguments (e.g., `group_by(col1, col2)`).
--   Once grouped, use `summarise()` function to compute the mean across these groupings.
--   Since we're interested in only the top three highest values, chain the result of the above functions to the `arrange()` function to sort the averages in descending order.
-
-```{=html}
-<details>
-  <summary>Check the Answer</summary>
-```
-```{r}
-#| eval: false
-cancer_mort |> 
-  filter(Type == "Incidence") |> 
-  group_by(Cancer_Type, Age) |> 
-  summarise(average = mean(Count)) |> 
-  arrange(desc(average))
-```
-
-</details>
+:::
 
 3.  Find the year, cancer type and age group with the highest cancer count observed among age groups above 29.
 
@@ -1637,6 +1626,5 @@ cancer_mort |>
 
 </details>
 
-
-
 :::
+

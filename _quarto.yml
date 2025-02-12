@@ -12,8 +12,6 @@ website:
         menu:
         - text: "Session 1"
           href: vignettes/Session_1.html
-        - text: "Session 2"
-          href: vignettes/Session_2.html
 format:
   html:
     theme: 
