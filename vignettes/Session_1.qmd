@@ -547,9 +547,9 @@ For the sake of reproducibility, it's crucial to regularly delete your objects a
 
 # Case Study: Immunotherapy Dataset
 
-In this workshop, we are using a dummy Immunotherapy dataset on REDCap filled with randomly generated data. Therefore, note that in some cases the data can make no sense. However, this will be useful for learning how to import data into R, data manipulation and basic visualization. 
+In this workshop, we are using a dummy Immunotherapy dataset on REDCap filled with randomly generated data. Therefore, note that in some cases the data can make no sense. However, this will be useful for learning how to import data into R, data manipulation and basic visualization.
 
-This dataset contains 15 instruments or forms namely: Demographics, Melanoma Data, Adjuvant Therapy, Systemic Therapy for Advanced Disease, Melanoma CNS Metastases, Adverse Events, Baseline Visit, Checkpoint Inhibitor Treatment, Immune Related Adverse Events (irAEs), Pathology, PET irAE Imaging, PPI and Antibiotic use during treatment with CPIs, Response Data, and Mortality Data.       
+This dataset contains 15 instruments or forms namely: Demographics, Melanoma Data, Adjuvant Therapy, Systemic Therapy for Advanced Disease, Melanoma CNS Metastases, Adverse Events, Baseline Visit, Checkpoint Inhibitor Treatment, Immune Related Adverse Events (irAEs), Pathology, PET irAE Imaging, PPI and Antibiotic use during treatment with CPIs, Response Data, and Mortality Data.
 
 ![](images/record-status-dashboard.png)
 
@@ -608,9 +608,9 @@ The best way to familiarize yourself with the REDCap API is to explore the API P
 
 2.  Once in the API Playground, there is a blue box with a dropdown menu labeled "API Method." This dropdown includes all the API actions REDCap can take.
 
-![](images/api-playground.png)
-
     a.  If a project is in production, the methods listed in this dropdown will be limited so as not to affect real data in the project. This is noted in the green text under the "API Method" dropdown.
+
+![](images/api-playground.png)
 
 3.  Select the method you need from the dropdown menu and complete the additional information. The additional information (e.g., "Format", "Instrument", etc.) will vary depending on which API method you choose and the project structure. In the above example, the researcher is asking to export project information as a CSV.
 
@@ -677,7 +677,6 @@ api_token <- Sys.getenv("rcap_immuno_key")
 Once you have an API token, you can test whether it works using httr in R.
 
 ::: {.callout-tip title="Example: Checking Project Information"}
-
 ```{r}
 #| warning: false
 
@@ -699,14 +698,13 @@ result <- httr::content(response)
 # Print project details
 result
 ```
-
 :::
 
 If the request is successful, you should see metadata about your REDCap project as shown above.
 
 ## Importing REDCap Data via API
 
-Once you have set up your API token securely, you can use R to retrieve data directly from REDCap. The `REDCapR` package provides an interface to streamline API calls from R, making it easy to import records from a REDCap project. 
+Once you have set up your API token securely, you can use R to retrieve data directly from REDCap. The `REDCapR` package provides an interface to streamline API calls from R, making it easy to import records from a REDCap project.
 
 ### Reading REDCap Data
 
@@ -717,9 +715,7 @@ requireNamespace("REDCapR")
 
 #### Set project-wide values
 
-There is some information that is specific to the REDCap project, as opposed to an individual operation. This includes: 
-  1. the uniform resource identifier (uri) of the server
-  2. the token for the user’s project.
+There is some information that is specific to the REDCap project, as opposed to an individual operation. This includes: 1. the uniform resource identifier (uri) of the server 2. the token for the user's project.
 
 ```{r}
 library(REDCapR)
@@ -731,7 +727,7 @@ token <- Sys.getenv("rcap_immuno_key")  # Load token securely
 
 #### Read all records and fields
 
-By default, the `redcap_read()` function retrieves the entire dataset from a REDCap project if no filtering parameters (such as records or fields) are specified. 
+By default, the `redcap_read()` function retrieves the entire dataset from a REDCap project if no filtering parameters (such as records or fields) are specified.
 
 ```{r}
 #| warning: false
@@ -766,7 +762,6 @@ immuno_some_records <- redcap_read(
 immuno_some_records
 ```
 
-
 #### Read a subset of fields
 
 If you only need specific variables (e.g., record_id, dob, gender), you can specify a list of field names in the fields argument of `redcap_read()`.
@@ -788,19 +783,16 @@ immuno_some_fields <- redcap_read(
 head(immuno_some_fields)
 ```
 
-In all these cases, the data imported into R from REDCap is in its **raw format**. For example, a categorical variable like sex, which is expected to contain values such as “Male” or “Female,” may instead be represented as numeric codes (e.g., 1 for Male, 2 for Female). While these values can be manually recoded in R, doing so for large projects with multiple categorical variables can quickly become cumbersome and error-prone.
+In all these cases, the data imported into R from REDCap is in its **raw format**. For example, a categorical variable like sex, which is expected to contain values such as "Male" or "Female," may instead be represented as numeric codes (e.g., 1 for Male, 2 for Female). While these values can be manually recoded in R, doing so for large projects with multiple categorical variables can quickly become cumbersome and error-prone.
 
-Furthermore, **complex study designs**—such as those used in *clinical trials, cohort studies, and observational research*—often involve **longitudinal data** or **repeating instruments**, adding another layer of complexity to data management.
+Furthermore, **complex study designs**---such as those used in *clinical trials, cohort studies, and observational research*---often involve **longitudinal data** or **repeating instruments**, adding another layer of complexity to data management.
 
-- **Longitudinal data** is used when information is collected at *multiple time points or study events* (e.g., Baseline, Follow-up).
-  ![](images/longitudinal.png)
-- **Repeating instruments** allow a single form to be completed *multiple times per participant* (e.g., recording multiple adverse events, medications, or hospital visits).
-  ![](images/repeating.png)
+-   **Longitudinal data** is used when information is collected at *multiple time points or study events* (e.g., Baseline, Follow-up). ![](images/longitudinal.png)
+-   **Repeating instruments** allow a single form to be completed *multiple times per participant* (e.g., recording multiple adverse events, medications, or hospital visits). ![](images/repeating.png)
 
 Handling these *structured data formats* in R requires additional steps for cleaning and organization.
 
-To address these challenges, the `REDCapTidieR` package extends the functionality of `REDCapR`, making it easier to analyze complex REDCap datasets. 
-
+To address these challenges, the `REDCapTidieR` package extends the functionality of `REDCapR`, making it easier to analyze complex REDCap datasets.
 
 #### Reading all REDCap data
 
@@ -809,8 +801,9 @@ Unlike `REDCapR`, which returns a single large dataframe, `REDCapTidieR` automat
 Before using `REDCapTidieR`, ensure it is installed along with its dependencies:
 
 ```{r}
+# If this fails, run install.packages("REDCapTidieR") or
+# devtools::install_github("CHOP-CGTInformatics/REDCapTidieR")
 requireNamespace("REDCapTidieR")
-# If this fails, run install.packages("REDCapTidieR") or devtools::install_github("CHOP-CGTInformatics/REDCapTidieR")
 ```
 
 To import the entire dataset while maintaining **structured tables** (or *supertibble*), use `read_redcap()`:
@@ -822,11 +815,12 @@ library(REDCapTidieR)
 
 # Read entire REDCap project data
 immuno <- read_redcap(redcap_uri = uri, token = token, raw_or_label = "raw")
-
-# print the structure of imported data
-head(immuno)
 ```
 
+```{r}
+# print the structure of imported data
+str(immuno, max.level = 2)
+```
 
 # Exploring the Data
 
@@ -874,14 +868,13 @@ The `bind_tibbles()` function takes a supertibble and binds its data tibbles dir
 immuno |> bind_tibbles()
 ```
 
-
 <center>
 
 ![Demonstration of the `bind_tibbles` function](images/bind-tibble.gif)
 
 </center>
 
-By default, `bind_tibbles()` extracts all data tibbles from the supertibble. With the `tbls` argument you can specify a subset of data tibbles that should be extracted. 
+By default, `bind_tibbles()` extracts all data tibbles from the supertibble. With the `tbls` argument you can specify a subset of data tibbles that should be extracted.
 
 ### Extracting a list of data tibbles
 
@@ -895,10 +888,9 @@ immuno_instrument_list |>
   str(max.level = 1)
 ```
 
-
 ## Adding variable labels with the labelled package
 
-`REDCapTidieR` package allows you to attach labels to variables in the supertibble. Variable labels can make data exploration easier. 
+`REDCapTidieR` package allows you to attach labels to variables in the supertibble. Variable labels can make data exploration easier.
 
 ```{r}
 immuno |>
@@ -930,9 +922,15 @@ These labels are the REDCap **field labels** that prompt data entry in the REDCa
 
 </center>
 
-In the `demographics` instrument, a label has a trailing colon `:` (check the label of `autoimmune_disease_select___9` variable below). This won't look good as a variable label so let's remove it. 
+In the `demographics` instrument, a label has a trailing colon `:` (check the label of `autoimmune_disease_select___9` variable below). This won't look good as a variable label so let's remove it.
 
 ```{r}
+#| eval: false
+labelled::look_for(demographics)
+```
+
+```{r}
+#| echo: false
 #| classes: scrolling
 labelled::look_for(demographics)
 ```
@@ -940,6 +938,7 @@ labelled::look_for(demographics)
 The `make_labelled()` function has a `format_labels` argument that you can use to preprocess labels before applying them to variables.
 
 ```{r}
+#| eval: false
 immuno |>
   make_labelled(format_labels = ~ gsub(":", "", .)) |>
   bind_tibbles()
@@ -947,7 +946,17 @@ immuno |>
 labelled::look_for(demographics, "autoimmune")
 ```
 
-This remove all colons in labels. 
+```{r}
+#| echo: false
+#| classes: scrolling
+immuno |>
+  make_labelled(format_labels = ~ gsub(":", "", .)) |>
+  bind_tibbles()
+
+labelled::look_for(demographics, "autoimmune")
+```
+
+This remove all colons in labels.
 
 To removing trailing `:` characters from a field label `REDCapTidieR` provides a format helper function that you can pass to the `format_labels` argument:
 
@@ -960,7 +969,22 @@ To find out about other helpers included with REDCapTidieR, see `` ?`format-help
 The `format_labels` argument will also accept multiple functions in a vector or list. You can pass any function that takes a character vector and returns a modified character vector to `format_labels`. In the following example, we remove the trailing colon with `fmt_strip_trailing_colon()` and then make the labels lower case with `base::tolower()`.
 
 ```{r}
+#| eval: false
+immuno |>
+  make_labelled(
+    format_labels = c(
+      fmt_strip_trailing_colon,
+      base::tolower
+    )
+  ) |>
+  bind_tibbles()
+
+labelled::look_for(demographics)
+```
+
+```{r}
 #| classes: scrolling
+#| echo: false
 immuno |>
   make_labelled(
     format_labels = c(
@@ -994,7 +1018,6 @@ rename_checkbox_columns <- function(instrument, column_name_prefix) {
 }
 ```
 
-
 ```{r}
 melanoma_data <- rename_checkbox_columns(melanoma_data, "mel_type___")
 head(melanoma_data)
@@ -1002,23 +1025,26 @@ head(melanoma_data)
 
 ## Viewing the Data
 
-This section demonstrates different ways to get to know the `immuno` dataset and its instruments. 
+This section demonstrates different ways to get to know the `immuno` dataset and its instruments.
 
 When the name of the object is typed, the first few lines along with some information, such as the number of rows are displayed:
 
 ```{r}
-head(immuno)
+#| eval: false
+immuno
 ```
+
+Since this is a large dataset, the output is not shown here. But you can try executing the above code.
 
 To view any column displayed above in the `immuno` object, you can specify the column number within `[[]]` or column name followed by `$`.
 
-- For example to view column 1:
+-   For example to view column 1:
 
 ```{r}
 immuno[[1]]
 ```
 
-- For example to view `redcap_form_name` column:
+-   For example to view `redcap_form_name` column:
 
 ```{r}
 immuno$redcap_form_name
@@ -1029,7 +1055,6 @@ A similar method can be used to access the patient data in all instruments using
 For example, to view the `mortality_data` instrument, we can access the redcap_data column first (i.e., `immuno$redcap_data` or `immuno[[3]]`) and then access the 15th instrument:
 
 ```{r}
-#| eval: false
 head(immuno$redcap_data[[15]]) # same as immuno[[3]][[15]]
 ```
 
@@ -1051,7 +1076,6 @@ The `nrow()` function prints the number of rows while `ncol()` prints the number
 nrow(immuno$redcap_data[[15]])
 ncol(immuno$redcap_data[[15]])
 ```
-
 
 The `View()` function gives a spreadsheet-like view of the data frame:
 
@@ -1108,14 +1132,8 @@ A statistical overview can be obtained using the `skim()` function in skimr pack
 
 ```{r}
 #| eval: false
-#| classes: scrolling
 library(skimr)
 skim(immuno$redcap_data[[15]])
-```
-
-```{=html}
-<details>
-<summary>Output</summary>
 ```
 
 ```{r}
@@ -1125,19 +1143,16 @@ library(skimr)
 skim(immuno$redcap_data[[15]])
 ```
 
-```{=html}
-</details>
-```
-
 ## Writing Data to a File
 
-Writing data to a file is a fundamental operation in programming and data analysis. It involves taking data from within a program or environment and storing it in a file on a disk for later use or sharing. This section explains the basics of writing a data file using the **readr** package. 
+Writing data to a file is a fundamental operation in programming and data analysis. It involves taking data from within a program or environment and storing it in a file on a disk for later use or sharing. This section explains the basics of writing a data file using the **readr** package.
 
 The `write_csv()` and `write_tsv()` functions are part of the **readr** package, which is designed for writing delimited files like CSV (comma-separated values) and TSV (tab-separated values). These functions are used to write data frames into CSV and TSV files, respectively.
 
-We first provide the variable name of the data frame followed by the file name (ideally including the full folder location). 
+We first provide the variable name of the data frame followed by the file name (ideally including the full folder location).
 
 To write a CSV file:
+
 ```{r}
 #| eval: false
 # on Mac:
@@ -1148,6 +1163,7 @@ write_csv(cms_data, "C:/Users/srajapaksa/Desktop/cms_data.csv")
 ```
 
 To write a TSV file:
+
 ```{r}
 #| eval: false
 # on Mac:
@@ -1157,7 +1173,7 @@ write_tsv(cms_data, "~/Desktop/cms_data.csv")
 write_tsv(cms_data, "C:/Users/srajapaksa/Desktop/cms_data.csv")
 ```
 
-## The Pipe Operator (`|>`)
+## The Pipe Operator (`|>` or `%>%`)
 
 The *pipe* operator (`|>`) is a commonly used feature of the tidyverse. It was originally defined in the (cleverly named) magrittr package, but is also included in the `dplyr`, tidyverse packages. The `|>` symbol can seem confusing and intimidating at first. However, once you understand the basic idea, it can become addicting!
 
@@ -1211,7 +1227,7 @@ Each operation takes the output of the previous operation as its input, making i
 
 Common tasks in working with data include actions like filtering rows or columns, performing calculations, or adding new columns. This sort of operations is known as data manipulation. It is the process of cleaning, organizing, and transforming raw data into a more structured and usable format for analysis.
 
-In this workshop, we'll guide you through the process of data manipulation in R, starting with the tidyverse. The tidyverse is a collection of packages that align with a data science philosophy developed by Hadley Wickham and the RStudio team. Many users find it to be a more intuitive way to grasp R concepts. 
+In this workshop, we'll guide you through the process of data manipulation in R, starting with the tidyverse. The tidyverse is a collection of packages that align with a data science philosophy developed by Hadley Wickham and the RStudio team. Many users find it to be a more intuitive way to grasp R concepts.
 
 You'll primarily use five key `dplyr` functions for data manipulations:
 
@@ -1234,7 +1250,7 @@ Next, load the pre-processed RDS Object:
 immuno_dataset <- readRDS("data/Sample_immuno_dataset.rds")
 ```
 
-**RDS (R Data Serialization)** files are used to save and load single R objects while preserving their structure, labels, and attributes. The *.rds* format is useful for storing dataframes, lists, models, and other complex objects. For convenience, the previously loaded REDCap dataset has been pre-processed and saved as an .rds file. This pre-processed version will be used throughout the remainder of the workshop. 
+**RDS (R Data Serialization)** files are used to save and load single R objects while preserving their structure, labels, and attributes. The *.rds* format is useful for storing dataframes, lists, models, and other complex objects. For convenience, the previously loaded REDCap dataset has been pre-processed and saved as an .rds file. This pre-processed version will be used throughout the remainder of the workshop.
 
 ### `filter()`
 
@@ -1247,7 +1263,7 @@ The `filter()` function takes logical expressions and returns the rows for which
 ```{r}
 immuno_dataset$redcap_data$melanoma_data |> 
   filter(melanoma_type == "cutaneous") |> 
-  head(20)
+  head()
 ```
 
 Here we are *sending* the `immuno_dataset$redcap_data$melanoma_data` data frame into the function `filter()` which tests each value in melanoma_type column for the value "cutaneous" and returns the rows where this condition is TRUE.
@@ -1258,23 +1274,22 @@ You can check the dimension (number of rows and number of columns) of the result
 immuno_dataset$redcap_data$melanoma_data |> filter(melanoma_type == "cutaneous") |> dim()
 ```
 
-
-**Example 2:** Identify records in `mortality_data` where time since first treatment dose  (`mortality_treatment_time`) exceeds 1 year. `mortality_treatment_time` is given in months. 
+**Example 2:** Identify records in `mortality_data` where time since first treatment dose (`mortality_treatment_time`) exceeds 1 year. `mortality_treatment_time` is given in months.
 
 ```{r}
 immuno_dataset$redcap_data$mortality_data |> 
   filter(mortality_treatment_time > 12) |> 
-  head(20)
+  head()
 ```
 
 We can use logical operators like and `&`, or `|` to combine multiple conditions as follows.
 
-**Example 3:** Find all the records in `mortality_data` where cause of death (`mortality_cause`) is categorized as "melanoma progression" and has a date of last follow up or death (`mortality_date`)  before "2023-01-01"  
+**Example 3:** Find all the records in `mortality_data` where cause of death (`mortality_cause`) is categorized as "melanoma progression" and has a date of last follow up or death (`mortality_date`) before "2023-01-01"
 
 ```{r}
 immuno_dataset$redcap_data$mortality_data |> 
   filter(mortality_cause == "melanoma progression" & mortality_date > as.Date("2023-01-01")) |> 
-  head(20)
+  head()
 ```
 
 **Example 4:** Find the records in `melanoma_data` where `melanoma_molecular_mutation` is either braf or nras.
@@ -1282,7 +1297,7 @@ immuno_dataset$redcap_data$mortality_data |>
 ```{r}
 immuno_dataset$redcap_data$melanoma_data |> 
   filter(melanoma_molecular_mutation == "braf" | melanoma_molecular_mutation == "braf") |> 
-  head(20)
+  head()
 ```
 
 **Example 5:** Retrieve records where `mortality_cause` is due to "treatment toxicity" and `mortality_treatment_time` is greater than 4 months but less than or equal to 10 months.
@@ -1293,7 +1308,7 @@ immuno_dataset$redcap_data$mortality_data |>
     mortality_cause == "treatment toxicity" & 
     mortality_treatment_time > 4 & 
     mortality_treatment_time <= 10) |> 
-  head(20)
+  head()
 ```
 
 #### `%in%` helper
@@ -1302,13 +1317,31 @@ The `%in%` function is used to determine whether elements of one vector are pres
 
 When we want to filter a subset of rows that may contain multiple different values, it's more efficient to provide a vector of the values of interest instead of combining multiple OR commands.
 
-**Example 6:** Retrieve records where `melanoma_type` is acral, cutaneous or muscosal. 
+**Example 6:** Retrieve records where `melanoma_type` is acral, cutaneous or muscosal.
 
 ```{r}
 immuno_dataset$redcap_data$melanoma_data |> 
   filter(melanoma_type %in% c("acral", "cutaneous",  "muscosal")) |> 
-  head(20)
+  head()
 ```
+
+::: {.callout-note title = "Try It Yourself" }
+
+Find patients who have stage III or IV disease (`mel_first_stage` column) and the first recurrence (`mel_date_diag`) is after 2021-03-01.
+
+*Hint: Use `melanoma_data` instrument*
+
+::: {.callout-caution collapse="true" title="Solution"}
+```{r}
+#| eval: false
+immuno_dataset$redcap_data$melanoma_data |> 
+  filter(
+    mel_first_stage %in% c("Stage III", "Stage IV") & 
+    mel_date_diag > as.Date("2021-03-01"))
+```
+:::
+
+:::
 
 ### `select()`
 
@@ -1323,7 +1356,7 @@ This function can accept column names (even without quotation marks) or the colu
 ```{r}
 immuno_dataset$redcap_data$adverse_events |> 
   select(record_id, ae_ecg_date, ae_mri_date) |> 
-  head(20)
+  head()
 ```
 
 Using column positions:
@@ -1331,7 +1364,7 @@ Using column positions:
 ```{r}
 immuno_dataset$redcap_data$adverse_events |> 
   select(1, 23, 32) |> 
-  head(20)
+  head()
 ```
 
 We can use the '-' symbol to extract all columns except for specific ones:
@@ -1339,16 +1372,15 @@ We can use the '-' symbol to extract all columns except for specific ones:
 ```{r}
 immuno_dataset$redcap_data$demographics |> 
   select(-redcap_event, -ur, -sex, -dob, -height, -weight) |> 
-  head(20)
+  head()
 ```
 
 Or use a combination of column names and positions:
 
 ```{r}
-#| eval: false
 immuno_dataset$redcap_data$demographics |> 
   select(1, medical_history, 15) |> 
-  head(20)
+  head()
 ```
 
 #### Useful helper functions
@@ -1362,7 +1394,7 @@ Some commonly used select helper functions include:
 ```{r}
 immuno_dataset$redcap_data$immune_related_adverse_events_iraes |> 
   select(starts_with('liver')) |> 
-  head(20)
+  head()
 ```
 
 2.  **`ends_with()`:** selects columns that end with a specified suffix.
@@ -1370,16 +1402,15 @@ immuno_dataset$redcap_data$immune_related_adverse_events_iraes |>
 ```{r}
 immuno_dataset$redcap_data$immune_related_adverse_events_iraes |> 
   select(ends_with('date')) |> 
-  head(20)
+  head()
 ```
 
 3.  **`contains()`:** selects columns that contain a specified substring.
 
 ```{r}
-#| eval: false
 immuno_dataset$redcap_data$immune_related_adverse_events_iraes |> 
   select(contains('skin')) |> 
-  head(20)
+  head()
 ```
 
 4.  **`everything()`:** Selects all columns.
@@ -1387,16 +1418,31 @@ immuno_dataset$redcap_data$immune_related_adverse_events_iraes |>
 This function returns all column names that have not been specified. It is often used when reordering all columns in a dataframe:
 
 ```{r}
-#| eval: false
 immuno_dataset$redcap_data$immune_related_adverse_events_iraes |> 
   select(1, starts_with("gastro"), everything()) |> 
-  head(20)
+  head()
 ```
 
 Here the dimensions of the dataframe is not changed, merely the column order.
 
 ::: {callout-tip}
 You can combine multiple helper functions to create more complex selection criteria. Additionally, you can use the '-' symbol in front of the helper function to exclude the matched columns.
+:::
+
+::: {.callout-note title="Try It Yourself"}
+Identify patients whose first response (`overall_response`) and best response on PET (`best_res_pet`) were either CMR (Complete metabolic response) or PMR (Partial metabolic response). Display only relevant columns: patient ID (`record_id`), first response (`overall_response`), and best PET response (`best_res_pet`).
+
+*Hint: Use `response_data` instrument*
+
+::: {.callout-caution collapse="true" title="Solution"}
+```{r}
+immuno_dataset$redcap_data$response_data |> 
+  filter(best_res_pet %in% c("Complete metabolic response", "Partial metabolic response"), 
+         overall_response %in% c("Complete metabolic response", "Partial metabolic response")) |> 
+  select(record_id, best_res_pet, overall_response) |> 
+  head()
+```
+:::
 :::
 
 ### `mutate()`
@@ -1412,14 +1458,12 @@ Here we use the `round()` function to round off the result to the closest intege
 ```{r}
 immuno_dataset$redcap_data$demographics |> 
   mutate(bmi_new = weight / (height/100 * height/100)) |> 
-  head(20)
+  head()
 ```
 
 This creates a new column at the end of the data frame named `bmi_new` and computes the BMI. Because the number of columns is expanding, we can reduce the number of columns displayed using the `select()` function.
 
-To do this, we need to use *chaining* which is discussed below.
-
-### `mutate()` continued
+To do this, we need to use *chaining* which is discussed before.
 
 Let's use chaining to combine both `select()` and `mutate()` operations for the previous example:
 
@@ -1427,8 +1471,52 @@ Let's use chaining to combine both `select()` and `mutate()` operations for the 
 immuno_dataset$redcap_data$demographics |> 
   select(record_id, weight, height, bmi) |> 
   mutate(bmi_new = weight / (height/100 * height/100)) |> 
-  head(20)
+  head()
 ```
+
+### `case_when` !!!!!
+
+```{r}
+inval code 
+```
+
+
+::: {.callout-note title="Try It Yourself"}
+
+Determine whether patients have "normal" or "abnormal" serum creatinine levels based on their sex (`sex`) and creatinine (`sys_path_creat`). Create a new column `creat_level` with the following categories:
+
+- “Normal”:
+      - Men (sex = “Male”) with creatinine between 0.7 and 1.3 mg/dL
+      - Women (sex = “Female”) with creatinine between 0.6 and 1.1 mg/dL
+- “Abnormal”: Otherwise
+
+The `demog_prior_treatment` dataset, which merges demographic and prior treatment instruments, has already been provided.
+
+*Hint: To convert serum creatinine from µmol/L to mg/dL, use the conversion factor:*
+
+$$
+\text{Creatinine (mg/dL)} = \text{Creatinine (µmol/L)} \times 0.0113
+$$
+
+```{r}
+#| warning: false
+demog_prior_treatment <- full_join(immuno_dataset$redcap_data$demographics,
+                                   immuno_dataset$redcap_data$prior_treatment, by = "record_id")
+```
+
+::: {.callout-caution collapse="true" title="Solution"}
+```{r}
+demog_prior_treatment |> 
+  mutate(creat_level = case_when(
+    sex == "Male" & sys_path_creat * 0.0113 >= 0.7 & sys_path_creat * 0.0113 <= 1.3 ~ "Normal",
+    sex == "Female" & sys_path_creat * 0.0113 >= 0.6 & sys_path_creat * 0.0113 <= 1.1 ~ "Normal",
+    TRUE ~ "Abnormal"
+)) |> 
+  select(record_id, sex, sys_path_creat, creat_level)
+```
+:::
+
+:::
 
 ### `summarise()`
 
@@ -1475,6 +1563,7 @@ immuno_dataset$redcap_data$prior_treatment |>
             n_rows = n())
 ```
 
+
 ### `arrange()`
 
 The `arrange()` function orders rows based on the values in a given column.
@@ -1486,15 +1575,15 @@ The `arrange()` function orders rows based on the values in a given column.
 ```{r}
 immuno_dataset$redcap_data$demographics |> 
   arrange(ur) |> 
-  head(20)
+  head()
 ```
 
-**Example 2:** Sort the records in `mortality_data` based on the mortality date first and then by last scan date (`date_last_scan`). 
+**Example 2:** Sort the records in `mortality_data` based on the mortality date first and then by last scan date (`date_last_scan`).
 
 ```{r}
 immuno_dataset$redcap_data$mortality_data |> 
   arrange(mortality_date, date_last_scan) |> 
-  head(20)
+  head()
 ```
 
 #### `desc()` helper function
@@ -1506,7 +1595,7 @@ This function is used to sort data in descending order.
 ```{r}
 immuno_dataset$redcap_data$mortality_data |> 
   arrange(desc(mortality_treatment_time)) |> 
-  head(20)
+  head()
 ```
 
 ### `count()` helper
@@ -1529,42 +1618,7 @@ immuno_dataset$redcap_data$melanoma_data |>
 
 ## Try It Yourself
 
-::: {.callout-note title = "Try It Yourself" }
-
-Try out the following examples by yourself first.
-
-1. Find patients who have stage III or IV disease (`mel_first_stage` column) and the first recurrence (`mel_date_diag`) is after 2021-03-01.
-
-*Hint: Use `melanoma_data` instrument*
-
-::: {.callout-caution collapse="true" title = "Solution" }
-
-```{r}
-#| eval: false
-immuno_dataset$redcap_data$melanoma_data |> 
-  filter(
-    mel_first_stage %in% c("Stage III", "Stage IV") & 
-    mel_date_diag > as.Date("2021-03-01"))
-```
-
-:::
-
-
-2.  Identify patients whose first response (`overall_response`) and best response on PET (`best_res_pet`) were either CMR (Complete metabolic response) or PMR (Partial metabolic response). Display only relevant columns: patient ID (`record_id`), first response (`overall_response`), and best PET response (`best_res_pet`).
-
-*Hint: Use `response_data` instrument*
-
-::: {.callout-caution collapse="true" title = "Solution" }
-
-```{r}
-immuno_dataset$redcap_data$response_data |> 
-  filter(best_res_pet %in% c("Complete metabolic response", "Partial metabolic response"), 
-         overall_response %in% c("Complete metabolic response", "Partial metabolic response")) |> 
-  select(record_id, best_res_pet, overall_response)
-```
-
-:::
-
+::: {.callout-note title="Try It Yourself"}
 3.  Find the year, cancer type and age group with the highest cancer count observed among age groups above 29.
 
 **Hints:**
@@ -1614,7 +1668,6 @@ cancer_mort |>
 <details>
   <summary>Check the Answer</summary>
 ```
-
 ```{r}
 #| eval: false
 cancer_mort |> 
@@ -1625,6 +1678,4 @@ cancer_mort |>
 ```
 
 </details>
-
 :::
-

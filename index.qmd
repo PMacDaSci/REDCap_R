@@ -195,11 +195,9 @@ install.packages(c("tidyverse", "REDCapR", "REDCapTidieR", "httr", "jsonlite"))
 
 ### Installing Quarto
 
-To install Quarto follow this link: (https://quarto.org/docs/get-started/)[https://quarto.org/docs/get-started/]. 
+To install Quarto follow this link: [https://quarto.org/docs/get-started/](https://quarto.org/docs/get-started/). 
 
 ## Data
-
-
 
 ## Into the tidyverse
 
