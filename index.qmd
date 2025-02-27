@@ -8,7 +8,7 @@ editor:
 
 This workshop is designed for beginners with little to no programming experience who want to learn how to work with REDCap data using R. Whether you are new to R or have some experience with spreadsheets and clinical data, this workshop will guide you through importing, cleaning, analyzing, and visualizing data from REDCap.
 
-We will cover both CSV-based data import and API-based extraction, ensuring that you can access REDCap data in a reproducible way. The workshop will cover essential programming concepts and gradually introduce more advanced topics, with a focus on using the `tidyREDCap`, `tidyverse`, `ggplot2`, and `tableone` packages to manage, explore, summarize and visualize your datasets. The aim of this workshop is equip participants with the skills to import, clean, analyze, and visualize REDCap data in R.
+The workshop will cover essential programming concepts and gradually introduce more advanced topics, with a focus on using the `REDCapTidieR`, `tidyverse`, and `ggplot2` packages to manage, explore and visualize your datasets. The aim of this workshop is to equip participants with the skills to import, clean, analyze, and visualize REDCap data in R.
 
 ## Learning Objectives
 
@@ -17,88 +17,8 @@ Participants will gain the following skills:
 - Proficiency in using R and RStudio for data analysis.
 - Basic R programming skills.
 - Connect to REDCap using API tokens and securely retrieve data.
-- Import and clean REDCap data in R using `tidyREDCap` and `tidyverse`.
-- Preprocess data, manage missing values, and reshape datasets.
+- Import and clean REDCap data in R using `REDCapTidieR` and `tidyverse`.
 - Create visualizations using `ggplot2` to explore trends in clinical data.
-- Generate a Table 1 summary for clinical reports.
-
-## Workshop Outline
-
-### Session 1: Introduction to R and Handling REDCap Data
-
-1. Introduction to basics of R
-
-  - Overview of R and RStudio interface
-  - Understanding R scripts and Quarto documents
-  - Introduction to basics of R
-
-2. Importing REDCap Data
-	•	Understanding API access in REDCap
-	•	What is an API, and why use it?
-	•	REDCap API tokens: how to request one
-	•	Setting up API tokens securely
-	•	Importing data into R via API
-	•	Handling longitudinal and repeated measures data
-	•	Handling API responses
-	•	Checking for errors in API calls
-	•	Understanding data formats returned (JSON, CSV)
-
-💡 Break (15 min)
-
-3. Importing Data from CSV and Other Formats (45 min)
-	•	Importing data from CSV (read_csv())
-	•	Importing Excel files (readxl::read_excel())
-	•	Exporting cleaned data (write_csv(), write_xlsx())
-
-4. Viewing and Exploring the Data (40 min)
-	•	Using head(), str(), and summary() to inspect datasets
-	•	Checking for missing values (is.na(), sum(is.na()))
-	•	Exploring dataset structure with View(), glimpse()
-	•	Understanding common REDCap variable formats
-	•	Using tidyREDCap::label_variables() to retrieve metadata
-
-Session 2: Data Cleaning, Preprocessing, and Visualization
-
-1. Data Cleaning and Tidying with tidyREDCap (50 min)
-	•	Renaming columns for readability (rename())
-	•	Handling missing data (drop_na(), replace_na())
-	•	Converting REDCap checkbox variables (tidyREDCap::redcap_checkbox_to_long())
-	•	Standardizing variable types (mutate(), as.factor(), as.numeric())
-	•	Selecting and filtering relevant data (select(), filter())
-
-💡 Break (15 min)
-
-2. Data Preprocessing (40 min)
-	•	Creating new variables (mutate(), case_when())
-	•	Recoding categorical variables (recode(), factor())
-	•	Merging datasets (left_join(), bind_rows())
-	•	Reshaping long/wide format (pivot_longer(), pivot_wider())
-
-3. Data Visualization with ggplot2 (40 min)
-	•	Introduction to ggplot2
-	•	Creating basic plots:
-	•	Histograms (geom_histogram())
-	•	Boxplots (geom_boxplot())
-	•	Scatter plots (geom_point())
-	•	Bar charts (geom_bar())
-	•	Customizing plots (titles, axes, colors)
-
-4. Creating a Summary Table (Table 1) (30 min)
-	•	Importance of Table 1 in clinical research
-	•	Using tableone to generate descriptive statistics
-	•	Formatting and exporting summary tables (CreateTableOne(), flextable)
-
-5. Q&A and Next Steps (20 min)
-	•	Common errors and troubleshooting
-	•	Where to find help (Cheat sheets, R documentation, online forums)
-	•	Additional resources for self-learning
-
-Workshop Format
-	•	Hands-on coding exercises with guided instructions
-	•	Real-world clinical dataset examples from REDCap
-	•	Interactive Q&A and troubleshooting sessions
-	•	Take-home exercises and reference materials
-
 
 ## Prerequisites
 
@@ -124,8 +44,12 @@ Windows
 
     -   Open RStudio, and click on "Help" \> "Check for updates". If a new version is available, quit RStudio, and download the latest version for RStudio.
     -   To check which version of R you are using, start RStudio and the first thing that appears in the console indicates the version of R you are running. Alternatively, you can type `sessionInfo()`, which will also display which version of R you are running. Go on the [CRAN website](https://cran.r-project.org/bin/windows/base/) and check whether a more recent version is available. If so, please download and install it. You can [check here](https://cran.r-project.org/bin/windows/base/rw-FAQ.html#How-do-I-UNinstall-R_003f) for more information on how to remove old versions from your system if you wish to do so.
+    
+- **If you don't have R and RStudio installed, but don't have Admin rights (i.e., using Peter Mac Windows computer):**
 
-- **If you don't have R and RStudio installed:**
+  - Create a SNOW ticket [here](https://rchauprod.service-now.com/snow?id=sc_cat_item&sys_id=8a4eb4091b3c95501a0964ab274bcb9f&sysparm_category=d6b631be1b836d10e40598a7b04bcb19) with the request item Software install (Windows PC). 
+
+- **If you don't have R and RStudio installed, but have Admin rights:**
 
   - Download R from the [CRAN website](https://cran.r-project.org/bin/windows/base/release.htm).
   - Run the `.exe` file that was just downloaded
@@ -188,7 +112,7 @@ On this course we will be making use of several packages designed for importing 
 
 ```{r}
 #| eval: false
-install.packages(c("tidyverse", "REDCapR", "REDCapTidieR", "httr", "jsonlite"))
+install.packages(c("tinytex", "tidyverse", "REDCapR", "REDCapTidieR", "httr", "jsonlite", "skimr", "labelled"))
 ```
 
 - You can also do this by going to Tools -\> Install Packages and typing the names of the packages separated by a comma.
@@ -197,13 +121,11 @@ install.packages(c("tidyverse", "REDCapR", "REDCapTidieR", "httr", "jsonlite"))
 
 To install Quarto follow this link: [https://quarto.org/docs/get-started/](https://quarto.org/docs/get-started/). 
 
-## Data
+
 
 ## Into the tidyverse
 
-The core tidyverse includes the packages that you're likely to use in
-everyday data analyses. Therefore, this workshop offers an introduction
-to these core packages. As of tidyverse 1.3.0, the following packages
+The core tidyverse includes the packages that you're likely to use in everyday data analyses. Therefore, this workshop offers an introduction to these core packages. As of tidyverse 1.3.0, the following packages
 are included in the core tidyverse:
 
 ::: {#fig-datatypes}
@@ -232,5 +154,6 @@ These content were adapted from the following course materials:
  - [Data Carpentry](https://datacarpentry.org)
  - [WEHI tidyr coursebook](https://bookdown.org/ansellbr/WEHI_tidyR_course_book/) by Brendan R. E. Ansell
  - content developed by Maria Doyle.
+ - `tidyverse`, `REDCapR`, `REDCapTidieR`, and `labelled` package documentations
 
 ------------------------------------------------------------------------

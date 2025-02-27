@@ -1307,8 +1307,7 @@ immuno_dataset$redcap_data$mortality_data |>
   filter(
     mortality_cause == "treatment toxicity" & 
     mortality_treatment_time > 4 & 
-    mortality_treatment_time <= 10) |> 
-  head()
+    mortality_treatment_time <= 10) 
 ```
 
 #### `%in%` helper
@@ -1351,20 +1350,20 @@ The `select()` function returns a subset of the variables or columns.
 
 This function can accept column names (even without quotation marks) or the column position number starting from the left. Unlike in base R (we explore before), commands within the brackets in `select()` do not need to be concatenated using `c()`.
 
-**Example 1:** Extract the record ID, ECG date (`ae_ecg_date`) and MRI date (`ae_mri_date`) columns from `adverse_events` data frame.
+**Example 1:** Extract the record ID, Echo date (`ae_echo_date`) and MRI date (`ae_mri_date`) columns from `adverse_events` data frame. 
 
 ```{r}
 immuno_dataset$redcap_data$adverse_events |> 
-  select(record_id, ae_ecg_date, ae_mri_date) |> 
-  head()
+  select(record_id, ae_echo_date, ae_mri_date) |> 
+  filter(!is.na(ae_echo_date)) # filter non-missing values in ae_echo_date column
 ```
 
 Using column positions:
 
 ```{r}
 immuno_dataset$redcap_data$adverse_events |> 
-  select(1, 23, 32) |> 
-  head()
+  select(1, 23, 30) |> 
+  filter(!is.na(ae_echo_date)) # filter non-missing values in ae_echo_date column
 ```
 
 We can use the '-' symbol to extract all columns except for specific ones:
@@ -1530,7 +1529,8 @@ $$
 ```{r}
 #| warning: false
 demog_prior_treatment <- full_join(immuno_dataset$redcap_data$demographics,
-                                   immuno_dataset$redcap_data$prior_treatment, by = "record_id")
+                                   immuno_dataset$redcap_data$prior_treatment, by = "record_id") |> 
+  filter(!is.na(sys_path_creat)) # filter non-missing values in sys_path_creat column
 ```
 
 ::: {.callout-caution collapse="true" title="Solution"}
@@ -1596,7 +1596,7 @@ immuno_dataset$redcap_data$prior_treatment |>
 
 ::: {.callout-note title = "Try It Yourself" }
 
-Summarize the key laboratory values and treatment outcomes for patients who received systemic therapy. Calculate the mean of hemoglobin (`sys_path_hb`), creatinine (`sys_path_creat`), and lactate dehydrogenase (`systemic_ldh_value`). Also, count how many patients experienced disease progression (`systemic_progression`).
+Summarize the key laboratory values and treatment outcomes for patients who received systemic therapy. Calculate the mean of C peptide (`sys_path_cpep`), creatinine (`sys_path_creat`), and lactate dehydrogenase (`systemic_ldh_value`). 
 
 *Hint: Use `prior_treatment` instrument*
 
@@ -1605,9 +1605,9 @@ Summarize the key laboratory values and treatment outcomes for patients who rece
 #| eval: false
 immuno_dataset$redcap_data$prior_treatment |> 
   summarise(
-    mean_hb = mean(sys_path_hb, na.rm = TRUE),
-    mean_ldh = mean(systemic_ldh_value, na.rm = TRUE),
-    systemic_progression_count = sum(systemic_progression == TRUE, na.rm = TRUE))
+    mean_cpep = mean(sys_path_cpep, na.rm = TRUE),
+    mean_creat = mean(sys_path_creat, na.rm = TRUE),
+    mean_ldh = mean(systemic_ldh_value, na.rm = TRUE))
 ```
 :::
 
@@ -1686,7 +1686,7 @@ immuno_dataset$redcap_data$melanoma_data |>
 
 ::: {.callout-note title="Try It Yourself"}
 
-Determine the number of patients treated with each single-agent immunotherapy (`type_of_single_agent_io`: ipilimumab, nivolumab, pembrolizumab). Additionally, count the number of patients for each type of best response (`best_response_to_ipi`, `best_response_to_nivo`, `best_response_to_pembro`) separately.
+Determine the number of records with each single-agent immunotherapy (`type_of_single_agent_io`: ipilimumab, nivolumab, pembrolizumab). Additionally, count the number of patients for each type of best response (`best_response_to_ipi`, `best_response_to_nivo_p`, `best_response_to_pembro`) separately.
 
 *Hint: Use `prior_treatment` instrument.*
 
@@ -2391,72 +2391,31 @@ Setting this inside the `aes()` mapping told ggplot2 to map the colour aesthetic
 Box plots (or *box & whisker plots*) are a particular favourite seen in many seminars and papers. Box plots summarize the distribution of a set of values by displaying the minimum and maximum values, the median (i.e. middle-ranked value), and the range of the middle 50% of values (inter-quartile range). The whisker line extending above and below the IQR box define Q3 + (1.5 x IQR), and Q1 - (1.5 x IQR) respectively. 
 
 ![](https://miro.medium.com/max/18000/1*2c21SkzJMf3frPXPAR_gZA.png)
-To create a box plot from Metabric dataset:
+To create a box plot from immuno dataset:
 
 ```{r}
 #| fig-align: center
 #| fig-height: 4
-metabric |> ggplot(aes(x = ER_IHC, y = GATA3)) +
+
+# join the melanoma_data instrument and mortality_data
+mel_mort <- full_join(immuno_dataset$redcap_data$melanoma_data , 
+                      immuno_dataset$redcap_data$mortality_data, 
+                      by = "record_id")
+# keep only the non-missing rows of mortality_treatment_time column
+mel_mort <- mel_mort |> filter(!is.na(mortality_treatment_time)) 
+
+ggplot(mel_mort, aes(x = melanoma_type, y = mortality_treatment_time)) +
   geom_boxplot()
 ```
 
-See `geom_boxplot` help to explain how the box and whiskers are constructed and
-how it decides which points are outliers and should be displayed as points.
+See `geom_boxplot` help to explain how the box and whiskers are constructed and how it decides which points are outliers and should be displayed as points.
 
-How about adding another layer to display all the points?
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(x = ER_IHC, y = GATA3)) +
-  geom_boxplot() +
-  geom_point()
-```
-
-Ideally, we'd like these points to be spread out a bit. The help page of `geom_point` fucntion 
-points to `geom_jitter` as more suitable when one of the variables is
-categorical.
+Let's try a colour aesthetic to also look at how estrogen receptor expression differs between HER2 positive and negative tumours.
 
 ```{r}
 #| fig-align: center
 #| fig-height: 4
-metabric |> ggplot(aes(x = ER_IHC, y = GATA3)) +
-  geom_boxplot() +
-  geom_jitter()
-```
-
-Well, that's a bit of a mess. We can bring the `geom_boxplot()` layer forward:
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(x = ER_IHC, y = GATA3)) +
-  geom_jitter() +
-  geom_boxplot(alpha = 0.5) 
-```
-
-Still not the best plot. We can reduce the spread or jitter and make the points smaller and transparent: 
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(x = ER_IHC, y = GATA3)) +
-  geom_boxplot() +
-  geom_jitter(width = 0.3, size = 0.5, alpha = 0.25)
-```
-
-Displaying points in this way makes much more sense when we only have a few
-observations and where the box plot masks the fact, perhaps giving the false
-impression that the sample size is larger than it actually is. Here it makes
-less sense as we have very many observations.
-
-Let's try a colour aesthetic to also look at how estrogen receptor expression
-differs between HER2 positive and negative tumours.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(x = ER_IHC, y = GATA3, colour = HER2_STATUS)) +
+ggplot(mel_mort, aes(x = melanoma_type, y = mortality_treatment_time, color = melanoma_type)) +
   geom_boxplot() 
 ```
 
@@ -2469,30 +2428,8 @@ The width of the violin at any given point represents the density of data at tha
 ```{r}
 #| fig-align: center
 #| fig-height: 4
-metabric |> ggplot(aes(y = GATA3, x = ER_IHC, colour = HER2_STATUS)) + 
-  geom_violin()
-```
-
-Inside each violin plot, a box plot is often included, showing additional summary statistics such as the median, quartiles, and potential outliers. This helps provide a quick overview of the central tendency and spread of the data within each category.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(y = GATA3, x = ER_IHC, colour = HER2_STATUS)) + 
-  geom_violin() + 
-  geom_boxplot(width = 0.8, alpha = 0.4)
-```
-
-In the above plot, the violin plots and box plots are misaligned. You can read the cause of this [here](https://stackoverflow.com/questions/73900036/boxplot-and-violin-plot-misaligned-in-ggplot2-for-only-one-level-of-the-x-axis). 
-
-To align them, we can use the `position_dodge()` function to manually adjusting the horizontal position as follows. 
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot(aes(y = GATA3, x = ER_IHC, colour = HER2_STATUS)) + 
-  geom_violin(position = position_dodge(0.8)) + 
-  geom_boxplot(width = 0.8, alpha = 0.4)
+ggplot(mel_mort, aes(x = melanoma_type, y = mortality_treatment_time, color = melanoma_type)) +
+    geom_violin()
 ```
 
 ## Histogram
@@ -2502,8 +2439,8 @@ The geom for creating histograms is, rather unsurprisingly, `geom_histogram()`.
 ```{r}
 #| fig-align: center
 #| fig-height: 4
-metabric |> ggplot() +
-  geom_histogram(aes(x = AGE_AT_DIAGNOSIS))
+ggplot(immuno_dataset$redcap_data$response_data) +
+  geom_histogram(aes(x = time_to_best_response))
 ```
 
 The warning message hints at picking a more optimal number of bins by specifying
@@ -2512,8 +2449,8 @@ the `binwidth` argument.
 ```{r}
 #| fig-align: center
 #| fig-height: 4
-metabric |> ggplot() +
-  geom_histogram(aes(x = AGE_AT_DIAGNOSIS), binwidth = 5)
+ggplot(immuno_dataset$redcap_data$response_data) +
+  geom_histogram(aes(x = time_to_best_response), binwidth = 5)
 ```
 
 Or we can set the number of bins.
@@ -2521,8 +2458,8 @@ Or we can set the number of bins.
 ```{r}
 #| fig-align: center
 #| fig-height: 4
-metabric |> ggplot() +
-  geom_histogram(aes(x = AGE_AT_DIAGNOSIS), bins = 20)
+ggplot(immuno_dataset$redcap_data$response_data) +
+  geom_histogram(aes(x = time_to_best_response), bins = 20)
 ```
 
 These histograms are not very pleasing, aesthetically speaking - how about some
@@ -2531,9 +2468,9 @@ better aesthetics?
 ```{r}
 #| fig-align: center
 #| fig-height: 4
-metabric |> ggplot() +
+ggplot(immuno_dataset$redcap_data$response_data) +
   geom_histogram(
-    aes(x = AGE_AT_DIAGNOSIS), 
+    aes(x = time_to_best_response), 
     bins = 20, 
     colour = "darkblue", 
     fill = "grey")
@@ -2546,149 +2483,25 @@ Density plots are used to visualize the distribution of a continuous variable in
 ```{r}
 #| fig-align: center
 #| fig-height: 4
-metabric |> ggplot() + 
-  geom_density(aes(x = AGE_AT_DIAGNOSIS, colour = INTCLUST))
+ggplot(immuno_dataset$redcap_data$response_data) +
+  geom_density(aes(x = time_to_best_response, colour = best_res_pet))
 ```
 
-## Categorical variables -- factors
-
-Several of the variables in the Metabric data set are categorical. Some of these have been read into R as character types (e.g. the three gene classifier), other as numerical values (e.g.
-tumour stage). We also have some binary variables that are essentially categorical
-variables but with only 2 possible values (e.g. ER status).
-
-In many of the plots given above, `ggplot2` has treated character variables as
-categorical in situations where a categorical variable is expected. For example,
-when we displayed points on a scatter plot using different colours for each
-three gene classification, or when we created separate box plots in the same graph
-for ER positive and negative patients.
-
-But what about when our categorical variable has been read into R as a
-continuous variable, e.g. `Tumour_stage`, which is read in as a double type.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_point(aes(x = GATA3, y = ESR1, colour = TUMOR_STAGE))
-```
-
-```{r}
-table(metabric$TUMOR_STAGE)
-```
-
-Tumour stage has only 5 discrete states but `ggplot2` doesn't know these are
-supposed to be a restricted set of values and has used a colour scale to show
-them as if they were continuous. We need to tell R that these are categorical (or factors).
-
-Let's convert our tumour stage variable to a factor using the `as.factor()` function.
-
-```{r}
-#| classes: scrolling
-metabric$TUMOR_STAGE <- as.factor(metabric$TUMOR_STAGE)
-metabric |> select(PATIENT_ID, TUMOR_STAGE) |> head()
-```
-
-R actually stores categorical variables as integers but with some additional
-metadata about which of the integer values, or 'levels', corresponds to each
-category.
-
-```{r}
-typeof(metabric$TUMOR_STAGE)
-class(metabric$TUMOR_STAGE)
-levels(metabric$TUMOR_STAGE)
-```
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_point(aes(x = GATA3, y = ESR1, colour = TUMOR_STAGE))
-```
-
-In this case the order of the levels makes sense but for other variables you
-may wish for more control over the ordering. Take the integrative cluster
-variable for example. We created a bar plot of the numbers of patients in the
-Metabric cohort within each integrative cluster. Did you notice the ordering of
-the clusters? 10 came just after 1 and before 2. That looked a bit odd as we'd
-have naturally expected it to come last of all. R, on the other hand, is
-treating this vector as a character vector (mainly because of the 'ER-' and
-'ER+' subtypes of cluster 4, and sorts the values into alphanumerical order.
-
-```{r}
-metabric$INTCLUST <- as.factor(metabric$INTCLUST)
-levels(metabric$INTCLUST)
-```
-
-As discussed [Section: Factors](1_Introduction.qmd#sec-factors), we can create a factor using
-the `factor()` function and specify the levels using the `levels` argument.
-
-```{r}
-metabric$INTCLUST <- factor(metabric$INTCLUST, levels = c("1", "2", "3", "4ER-", "4ER+", "5", "6", "7", "8", "9", "10"))
-levels(metabric$INTCLUST)
-```
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-metabric |> ggplot() +
-  geom_bar(aes(x = INTCLUST, fill = INTCLUST))
-```
-
-### Line plot
-
-A *line plot* is used to display the trend or pattern in data over a continuous range of values, typically along the x-axis (horizontal axis). 
-
-Before we create a line plot, let's start by reading a subset of cancer_mort dataset using the `read_csv()` function:
-
-```{r}
-#| message: false
-library(tidyverse)
-# first read the dataset
-cancer_mort_full <- read_csv("data/Australian_Cancer_Incidence_and_Mortality.csv")  
-# lets consider the rows with cancer types that starts with B letters only. 
-# this is done for illustartion purposes. 
-cancer_mort <- cancer_mort_full |> filter(str_detect(Cancer_Type, '^B[a-z]+'))
-```
-
-Next, we filter the cancer_mort data frame to plot only the counts for the female patients in the age group 55-59 and are categorized as moratality cases. 
-
-```{r}
-# define a new subset from cancer_mort dataset
-cancer_mort_55 <- cancer_mort |> 
-  filter(Age == '55-59' & Type == "Mortality", Sex == 'Female')
-```
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-cancer_mort_55 |> ggplot(aes(x = Year, y = Count)) + 
-  geom_line(aes(colour = Cancer_Type)) 
-```
-
-Another aesthetic available for `geom_line` is linetype.
-
-```{r}
-#| fig-align: center
-#| fig-height: 4
-cancer_mort_55 |> ggplot(aes(x = Year, y = Count)) + 
-  geom_line(aes(linetype = Cancer_Type)) 
-```
 
 ## Saving plot images
 
 Use `ggsave()` to save the last plot you displayed.
 
 ```{r eval = FALSE}
-ggsave("integrative_cluster.png")
+ggsave("time_to_best_response_density_plot.png")
 ```
 
 You can alter the width and height of the plot and can change the image file type.
 
 ```{r eval = FALSE}
-ggsave("integrative_cluster.pdf", width = 20, height = 12, units = "cm")
+ggsave("time_to_best_response_density_plot.pdf", width = 20, height = 12, units = "cm")
 ```
 
-You can also pass in a plot object you have created instead of using the last
-plot displayed. See the help page (`?ggsave`) for more details.
+You can also pass in a plot object you have created instead of using the last plot displayed. See the help page (`?ggsave`) for more details.
 
 

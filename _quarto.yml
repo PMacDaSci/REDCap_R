@@ -3,15 +3,13 @@ project:
   type: website
 
 website:
-  title: "Analysing REDCap Data using R"
+  title: "Analyzing REDCap Data using R"
   navbar:
     left:
       - href: index.html
         text: Home
       - text: Workshop Materials
-        menu:
-        - text: "Session 1"
-          href: vignettes/Session_1.html
+        href: vignettes/Session_1.html
 format:
   html:
     theme: 
