@@ -121,7 +121,9 @@ install.packages(c("tinytex", "tidyverse", "REDCapR", "REDCapTidieR", "httr", "j
 
 To install Quarto follow this link: [https://quarto.org/docs/get-started/](https://quarto.org/docs/get-started/). 
 
+### Additional Resources
 
+- Quarto Cheat Sheet - [https://www.datacamp.com/cheat-sheet/quarto-cheat-sheet-previously-known-as-r-markdown](https://www.datacamp.com/cheat-sheet/quarto-cheat-sheet-previously-known-as-r-markdown)
 
 ## Into the tidyverse
 

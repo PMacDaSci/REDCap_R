@@ -370,8 +370,8 @@ The above command displays the help documentation for the `mean` function, provi
 
 This will search for the term "regression" in the help documentation and return relevant results. It's useful when you want to find functions, packages, or topics related to a specific term.
 
-::: callout-tip
-Tab completion A very useful feature is Tab completion. You can start typing and use <kbd>Tab</kbd> to autocomplete code, for example, a function name.
+::: {.callout-tip title="Tab completion"}
+A very useful feature is Tab completion. You can start typing and use <kbd>Tab</kbd> to autocomplete code, for example, a function name.
 :::
 
 ## R Packages
