@@ -19,11 +19,7 @@ Participants will gain the following skills:
 - Proficiency in using R and RStudio for data analysis.
 - Basic R programming skills.
 - Connect to REDCap using API tokens and securely retrieve data.
-- Import and clean REDCap data in R using `tidyREDCap` and `tidyverse`.
-- Preprocess data, manage missing values, and reshape datasets.
+- Import and clean REDCap data in R using `REDCapTidieR` and `tidyverse`.
 - Create visualizations using `ggplot2` to explore trends in clinical data.
-- Generate a Table 1 summary for clinical reports.
-
-
 
 ------------------------------------------------------------------------
