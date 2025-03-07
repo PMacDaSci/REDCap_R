@@ -6,9 +6,9 @@ editor:
 
 ## Introduction
 
-This workshop is designed for beginners with little to no programming experience who want to learn how to work with REDCap data using R. Whether you are new to R or have some experience with spreadsheets and clinical data, this workshop will guide you through importing, cleaning, analyzing, and visualizing data from REDCap.
+This workshop is designed for beginners with little to no programming experience who want to learn how to work with REDCap data using R. Whether you are new to R or have some experience with spreadsheets and clinical data, this workshop will guide you through importing, cleaning, analysing, and visualising data from REDCap.
 
-The workshop will cover essential programming concepts and gradually introduce more advanced topics, with a focus on using the `REDCapTidieR`, `tidyverse`, and `ggplot2` packages to manage, explore and visualize your datasets. The aim of this workshop is to equip participants with the skills to import, clean, analyze, and visualize REDCap data in R.
+The workshop will cover essential programming concepts and gradually introduce more advanced topics, with a focus on using the `REDCapTidieR`, `tidyverse`, and `ggplot2` packages to manage, explore and visualise your datasets. The aim of this workshop is to equip participants with the skills to import, clean, analyse, and visualise REDCap data in R.
 
 ## Learning Objectives
 
@@ -18,7 +18,7 @@ Participants will gain the following skills:
 - Basic R programming skills.
 - Connect to REDCap using API tokens and securely retrieve data.
 - Import and clean REDCap data in R using `REDCapTidieR` and `tidyverse`.
-- Create visualizations using `ggplot2` to explore trends in clinical data.
+- Create visualisations using `ggplot2` to explore trends in clinical data.
 
 ## Prerequisites
 
@@ -106,7 +106,7 @@ Linux
 
 ### Installing R Packages
 
-On this course we will be making use of several packages designed for importing and processing data from REDCap, data manipulation and visualization. After installing R and RStudio, follow the instructions below to install the required packages.
+On this course we will be making use of several packages designed for importing and processing data from REDCap, data manipulation and visualisation. After installing R and RStudio, follow the instructions below to install the required packages.
 
 - After starting RStudio, at the console type: (look for the 'Console' tab and type at the `>` prompt)
 
