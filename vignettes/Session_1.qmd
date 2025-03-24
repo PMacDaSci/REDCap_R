@@ -284,6 +284,17 @@ We can use R as a calculator to do simple maths.
 
 More complex calculator functions are *built in* to R, which is the reason it is popular among mathematicians and statisticians. To use these functions, we need to call these functions.
 
+:::{.callout-warning icon="false" title = "Try It Yourself" }
+
+Add a R code chunk and find the result of the equation: $$ \frac{3^2 \times 8^3}{10 + 5} -120$$\
+:::
+
+::: {.callout-important collapse="true" icon="false" title="Solution"}
+```{r}
+(3^2 * 8^3)/(10 + 5) - 120
+```
+:::
+
 ### Calling Functions
 
 R has a large collection of built-in functions that are called like this:
@@ -297,7 +308,7 @@ Let's explore using `seq()` function to create a series of numbers.
 
 Start by typing `se` and then press <kbd>Tab</kbd>. RStudio will suggest possible completions. Specify `seq()` by typing more or use the up/down arrows to select it. You'll see a helpful tooltip-type information pop up, reminding you of the function's arguments. If you need more assistance, press <kbd>F1</kbd> (Windows/linux) or <kbd>fn</kbd> + <kbd>Tab</kbd> (Mac) to access the full documentation in the help tab at the lower right.
 
-Now, type the arguments 1, 10 and press \<kbd\<Return</kbd>.
+Now, type the arguments 1, 10 and press <kbd>Return</kbd>.
 
 ```{r}
 seq(1, 10)
@@ -337,6 +348,18 @@ sqrt(100) # this is the short-hand of sqrt(x = 100)
 
 Notice that the square root function is abbreviated to `sqrt()`. This is to make writing R code faster, however the draw back is that some functions are hard to remember, or to interpret.
 
+:::{.callout-warning icon="false" title = "Try It Yourself" }
+
+Find the sum of log square root values of the sequence 10, 20, 30, ..., 100.
+
+:::
+
+::: {.callout-important collapse="true" icon="false" title="Solution"}
+```{r}
+sum(log(sqrt(seq(10, 100, 10))))
+```
+:::
+
 ## Getting Help
 
 In R, the `?` and `??` operators are used for accessing help documentation, but they behave slightly differently.
@@ -372,6 +395,19 @@ This will search for the term "regression" in the help documentation and return 
 
 ::: {.callout-tip title="Tab completion"}
 A very useful feature is Tab completion. You can start typing and use <kbd>Tab</kbd> to autocomplete code, for example, a function name.
+:::
+
+:::{.callout-warning icon="false" title = "Try It Yourself" }
+
+Check the help page of `log` function.
+
+:::
+
+::: {.callout-important collapse="true" icon="false" title="Solution"}
+```{r}
+#| eval: false
+help(log)
+```
 :::
 
 ## R Packages
@@ -489,6 +525,21 @@ For example:
 # evenOthersUseCamelCase
 ```
 
+:::{.callout-warning icon="false" title = "Try It Yourself" }
+
+Assign the value 5 to a variable `a` and the value 10 to a variable `b`. Then, create a new variable `sum` that stores the result of adding `a` and `b`, and print the value of sum.
+
+:::
+
+::: {.callout-important collapse="true" icon="false" title="Solution"}
+```{r}
+a <- 5
+b <- 10
+sum <- a + b
+sum
+```
+:::
+
 ## Clearing the Environment
 
 Take a look at the objects you have created in your workspace that is accumulated in the environment pane in the upper right corner of RStudio.
@@ -531,13 +582,15 @@ ls()
 
 If you wish to remove a specific object, let's say `x1`, you can use the following command:
 
-``` r
-rm(x1)
+```{r}
+#| eval: false
+rm(a)
 ```
 
 To remove all objects:
 
-``` r
+```{r}
+#| eval: false
 rm(list = ls())
 ```
 
@@ -702,6 +755,40 @@ result
 
 If the request is successful, you should see metadata about your REDCap project as shown above.
 
+:::{.callout-warning icon="false" title = "Try It Yourself" }
+
+In the REDCap API Playground, use the 'Export Records' option to create an API request that exports the 3rd record and the `mortality_data` form in CSV format.
+
+:::
+
+::: {.callout-important collapse="true" icon="false" title="Solution"}
+```{r}
+#| eval: false
+#!/usr/bin/env Rscript
+url <- "https://redcap.petermac.org.au/api/"
+formData <- list("token"=token,
+    content='record',
+    action='export',
+    format='csv',
+    type='flat',
+    csvDelimiter='',
+    'records[0]'='3',
+    'forms[0]'='mortality_data',
+    rawOrLabel='raw',
+    rawOrLabelHeaders='raw',
+    exportCheckboxLabel='false',
+    exportSurveyFields='false',
+    exportDataAccessGroups='false',
+    returnFormat='json'
+)
+response <- httr::POST(url, body = formData, encode = "form")
+result <- httr::content(response)
+print(result)
+
+
+```
+:::
+
 ## Importing REDCap Data via API
 
 Once you have set up your API token securely, you can use R to retrieve data directly from REDCap. The `REDCapR` package provides an interface to streamline API calls from R, making it easy to import records from a REDCap project.
@@ -769,10 +856,10 @@ If you only need specific variables (e.g., record_id, dob, gender), you can spec
 ```{r}
 #| warning: false
 
-# Define the specific records to retrieve
+# Define the specific fields to retrieve
 selected_fields <- c("first_name", "dob", "mortality_date")  # Replace with actual record IDs
 
-# Read only the selected records
+# Read only the selected fields
 immuno_some_fields <- redcap_read(
   redcap_uri = uri, 
   token = token, 
@@ -793,6 +880,33 @@ Furthermore, **complex study designs**---such as those used in *clinical trials,
 Handling these *structured data formats* in R requires additional steps for cleaning and organisation.
 
 To address these challenges, the `REDCapTidieR` package extends the functionality of `REDCapR`, making it easier to analyse complex REDCap datasets.
+
+:::{.callout-warning icon="false" title = "Try It Yourself" }
+
+Read records from 260 to 266 and the following fields: `record_id`, `mel_type`, `systemic_type`, `systemic_stage`, `best_response_percist`, `mortality_treatment_time` and `mortality_cause`.
+
+:::
+
+::: {.callout-important collapse="true" icon="false" title="Solution"}
+```{r}
+#| eval: false
+# Define the specific fields to retrieve
+selected_fields <- c("record_id", "mel_type", "systemic_type", "systemic_stage",
+                     "best_response_percist", "mortality_treatment_time",
+                     "mortality_cause")  # Replace with actual record IDs
+
+# Read only the selected records and fields
+immuno_subset <- redcap_read(
+  redcap_uri = uri, 
+  token = token, 
+  fields = selected_fields,
+  records = seq(260, 266)
+)$data
+
+# print the subset
+immuno_subset
+```
+:::
 
 #### Reading all REDCap data
 
@@ -997,6 +1111,19 @@ immuno |>
 labelled::look_for(demographics)
 ```
 
+:::{.callout-warning icon="false" title = "Try It Yourself" }
+
+List all the labels in the `prior_treatment` instrument that contains the word "response".
+
+:::
+
+::: {.callout-important collapse="true" icon="false" title="Solution"}
+```{r}
+#| eval: false
+labelled::look_for(prior_treatment, "response")
+```
+:::
+
 ## Renaming column names using labels
 
 Some columns associated with **checkbox fields** in REDCap forms often have less intuitive names. For example, in the `melanoma_data` instrument, the melanoma type columns are named as `mel_type___1`, `mel_type___2`, `mel_type___3`, etc. These names correspond to different melanoma subtypes but are not easily interpretable.
@@ -1143,6 +1270,37 @@ library(skimr)
 skim(immuno$redcap_data[[15]])
 ```
 
+:::{.callout-warning icon="false" title = "Try It Yourself" }
+
+1.  Display the number of rows and columns in the `melanoma_cns_metastases` instrument.
+2.  Show the first 6 and last 6 records from the `melanoma_cns_metastases` instrument.
+3.  List the column names and row names of the instrument.
+4.  Generate a statistical summary of the instrument using the `skim()` function.
+
+:::
+
+::: {.callout-important collapse="true" title="Solution" icon="false"}
+```{r}
+#| eval: false
+# number of rows
+nrow(immuno$redcap_data[[5]])
+# number of columns
+ncol(immuno$redcap_data[[5]])
+
+# first 6 records
+head(immuno$redcap_data[[5]])
+# last 6 records
+tail(immuno$redcap_data[[5]])
+
+# column names
+colnames(immuno$redcap_data[[5]])
+# row names (no names given, so indices are used)
+rownames(immuno$redcap_data[[5]])
+
+skim(immuno$redcap_data[[5]])
+```
+:::
+
 ## Writing Data to a File
 
 Writing data to a file is a fundamental operation in programming and data analysis. It involves taking data from within a program or environment and storing it in a file on a disk for later use or sharing. This section explains the basics of writing a data file using the **readr** package.
@@ -1172,6 +1330,45 @@ write_tsv(cms_data, "~/Desktop/cms_data.csv")
 # on Windows
 write_tsv(cms_data, "C:/Users/srajapaksa/Desktop/cms_data.csv")
 ```
+
+:::{.callout-warning icon="false" title = "Try It Yourself" }
+
+1.  View the help documentation of the `read_redcap()` function.
+2.  Use `read_redcap()` to make an API call and read the `response_data` instrument.
+3.  Extract the first 10 rows and assign them to a new variable called `response_data_10.`
+4.  Save `response_data_10` as a CSV file named immuno_response_data_10.csv in your Downloads folder.
+
+:::
+
+::: {.callout-important collapse="true" title="Solution" icon="false"}
+1.  
+
+```{r}
+#| eval: false
+help("read_redcap")
+```
+
+2.  
+
+```{r}
+#| eval: false
+response_data_df <- read_redcap(redcap_uri = uri, token = token, raw_or_label = "raw", forms = "response_data")
+```
+
+3.  
+
+```{r}
+#| eval: false
+response_data_10 <- head(response_data_df$redcap_data[[1]], 10)
+```
+
+4.  
+
+```{r}
+#| eval: false
+write_csv(response_data_10, "~/Downloads/immuno_response_data_10.csv")
+```
+:::
 
 ## The Pipe Operator (`|>` or `%>%`)
 
@@ -1222,6 +1419,18 @@ In this template:
 -   `...` represents any additional arguments or parameters that may be passed to each operation.
 
 Each operation takes the output of the previous operation as its input, making it easy to chain multiple operations together. This improves the readability of your code by organising operations in a left-to-right fashion and it avoids creating intermediate variables to store the results of each operation.
+
+:::{.callout-warning icon="false" title = "Try It Yourself" }
+
+Find the sum of log square root values of the sequence 10, 20, 30, ..., 100 by chaining functions.
+
+:::
+
+::: {.callout-important collapse="true" title="Solution" icon="false"}
+```{r}
+seq(10, 100, 10) |> sqrt() |> log() |> sum()
+```
+:::
 
 # Data manipulation with \`dplyr\` functions
 
@@ -1324,13 +1533,15 @@ immuno_dataset$redcap_data$melanoma_data |>
   head()
 ```
 
-::: {.callout-note title = "Try It Yourself" }
+::: {.callout-warning title = "Try It Yourself" icon="false"}
 
 Find patients who have stage III or IV disease (`mel_first_stage` column) and the first recurrence (`mel_date_diag`) is after 2021-03-01.
 
 *Hint: Use `melanoma_data` instrument*
 
-::: {.callout-caution collapse="true" title="Solution"}
+:::
+
+::: {.callout-important collapse="true" title="Solution" icon="false"}
 ```{r}
 #| eval: false
 immuno_dataset$redcap_data$melanoma_data |> 
@@ -1338,8 +1549,6 @@ immuno_dataset$redcap_data$melanoma_data |>
     mel_first_stage %in% c("Stage III", "Stage IV") & 
     mel_date_diag > as.Date("2021-03-01"))
 ```
-:::
-
 :::
 
 ### `select()`
@@ -1350,7 +1559,7 @@ The `select()` function returns a subset of the variables or columns.
 
 This function can accept column names (even without quotation marks) or the column position number starting from the left. Unlike in base R (we explore before), commands within the brackets in `select()` do not need to be concatenated using `c()`.
 
-**Example 1:** Extract the record ID, Echo date (`ae_echo_date`) and MRI date (`ae_mri_date`) columns from `adverse_events` data frame. 
+**Example 1:** Extract the record ID, Echo date (`ae_echo_date`) and MRI date (`ae_mri_date`) columns from `adverse_events` data frame.
 
 ```{r}
 immuno_dataset$redcap_data$adverse_events |> 
@@ -1428,19 +1637,20 @@ Here the dimensions of the dataframe is not changed, merely the column order.
 You can combine multiple helper functions to create more complex selection criteria. Additionally, you can use the '-' symbol in front of the helper function to exclude the matched columns.
 :::
 
-::: {.callout-note title="Try It Yourself"}
+::: {.callout-warning title="Try It Yourself" icon="false"}
 Identify patients whose first response (`overall_response`) and best response on PET (`best_res_pet`) were either CMR (Complete metabolic response) or PMR (Partial metabolic response). Display only relevant columns: patient ID (`record_id`), first response (`overall_response`), and best PET response (`best_res_pet`).
 
 *Hint: Use `response_data` instrument*
+:::
 
-::: {.callout-caution collapse="true" title="Solution"}
+::: {.callout-important collapse="true" title="Solution" icon="false"}
 ```{r}
+#| eval: false
 immuno_dataset$redcap_data$response_data |> 
   filter(best_res_pet %in% c("Complete metabolic response", "Partial metabolic response"), 
          overall_response %in% c("Complete metabolic response", "Partial metabolic response")) |> 
   select(record_id, best_res_pet, overall_response)
 ```
-:::
 :::
 
 ### `mutate()`
@@ -1486,14 +1696,14 @@ case_when(
 )
 ```
 
-Each **condition** is checked in order, and the corresponding value is assigned if the condition is `TRUE`. The `TRUE` ~ `default_value` at the end acts as a fallback for any rows that do not match previous conditions.
+Each **condition** is checked in order, and the corresponding value is assigned if the condition is `TRUE`. The `TRUE` \~ `default_value` at the end acts as a fallback for any rows that do not match previous conditions.
 
 **Example 2:** generates a new column `bmi_category`, which classifies patients based on their Body Mass Index (BMI) using the following categories:
 
-- "Underweight": BMI < 18.5
-- "Normal Weight": 18.5 ≤ BMI < 25
-- "Overweight": 25 ≤ BMI < 30
-- "Obese": BMI ≥ 30.
+-   "Underweight": BMI \< 18.5
+-   "Normal Weight": 18.5 ≤ BMI \< 25
+-   "Overweight": 25 ≤ BMI \< 30
+-   "Obese": BMI ≥ 30.
 
 ```{r}
 immuno_dataset$redcap_data$demographics |> 
@@ -1509,14 +1719,13 @@ immuno_dataset$redcap_data$demographics |>
 
 Here `mutate()` creates a new column `bmi_category`. `case_when()` assigns categories based on the BMI values and the final condition `TRUE` ensures any missing or unclassified values are labeled as "Unknown".
 
-::: {.callout-note title="Try It Yourself"}
-
+::: {.callout-warning title="Try It Yourself" icon="false"}
 Determine whether patients have "normal" or "abnormal" serum creatinine levels based on their sex (`sex`) and creatinine (`sys_path_creat`). Create a new column `creat_level` with the following categories:
 
-- “Normal”:
-      - Men (sex = “Male”) with creatinine between 0.7 and 1.3 mg/dL
-      - Women (sex = “Female”) with creatinine between 0.6 and 1.1 mg/dL
-- “Abnormal”: Otherwise
+-   "Normal":
+    - Men (sex = “Male”) with creatinine between 0.7 and 1.3 mg/dL
+    - Women (sex = “Female”) with creatinine between 0.6 and 1.1 mg/dL
+-   "Abnormal": Otherwise
 
 The `demog_prior_treatment` dataset, which merges demographic and prior treatment instruments, has already been provided.
 
@@ -1532,8 +1741,9 @@ demog_prior_treatment <- full_join(immuno_dataset$redcap_data$demographics,
                                    immuno_dataset$redcap_data$prior_treatment, by = "record_id") |> 
   filter(!is.na(sys_path_creat)) # filter non-missing values in sys_path_creat column
 ```
+:::
 
-::: {.callout-caution collapse="true" title="Solution"}
+::: {.callout-important collapse="true" title="Solution" icon="false"}
 ```{r}
 #| eval: false
 demog_prior_treatment |> 
@@ -1544,8 +1754,6 @@ demog_prior_treatment |>
 )) |> 
   select(record_id, sex, sys_path_creat, creat_level)
 ```
-:::
-
 :::
 
 ### `summarise()`
@@ -1593,14 +1801,15 @@ immuno_dataset$redcap_data$prior_treatment |>
             n_rows = n())
 ```
 
+::: {.callout-warning title = "Try It Yourself" icon="false"}
 
-::: {.callout-note title = "Try It Yourself" }
+Summarise the key laboratory values and treatment outcomes for patients who received systemic therapy. Calculate the mean of C peptide (`sys_path_cpep`), creatinine (`sys_path_creat`), and lactate dehydrogenase (`systemic_ldh_value`).
 
-Summarise the key laboratory values and treatment outcomes for patients who received systemic therapy. Calculate the mean of C peptide (`sys_path_cpep`), creatinine (`sys_path_creat`), and lactate dehydrogenase (`systemic_ldh_value`). 
+*Hint: Use `prior_treatment` instrument* 
 
-*Hint: Use `prior_treatment` instrument*
+:::
 
-::: {.callout-caution collapse="true" title="Solution"}
+::: {.callout-important collapse="true" title="Solution" icon="false"}
 ```{r}
 #| eval: false
 immuno_dataset$redcap_data$prior_treatment |> 
@@ -1609,8 +1818,6 @@ immuno_dataset$redcap_data$prior_treatment |>
     mean_creat = mean(sys_path_creat, na.rm = TRUE),
     mean_ldh = mean(systemic_ldh_value, na.rm = TRUE))
 ```
-:::
-
 :::
 
 ### `arrange()`
@@ -1647,13 +1854,15 @@ immuno_dataset$redcap_data$mortality_data |>
   head()
 ```
 
-::: {.callout-note title = "Try It Yourself" }
+::: {.callout-warning title = "Try It Yourself" icon="false"}
 
 Exclude records where either the first name (`first_name`) or last name (`last_name`) is missing, and then sort the remaining records in ascending order, first by `first_name` and then by `last_name`.
 
-*Hint: Use `demographics` instrument. Use `is.na()` to check for missing values and `!is.na()` to keep only non-missing values.*
+*Hint: Use `demographics` instrument. Use `is.na()` to check for missing values and `!is.na()` to keep only non-missing values.* 
 
-::: {.callout-caution collapse="true" title="Solution"}
+:::
+
+::: {.callout-important collapse="true" title="Solution" icon="false"}
 ```{r}
 #| eval: false
 immuno_dataset$redcap_data$demographics |> 
@@ -1661,9 +1870,6 @@ immuno_dataset$redcap_data$demographics |>
   arrange(first_name, last_name)
 ```
 :::
-
-:::
-
 
 ### `count()` helper
 
@@ -1683,20 +1889,17 @@ immuno_dataset$redcap_data$melanoma_data |>
   count(melanoma_type, melanoma_molecular_mutation)
 ```
 
-
-::: {.callout-note title="Try It Yourself"}
-
+::: {.callout-warning title="Try It Yourself" icon="false"}
 Determine the number of records with each single-agent immunotherapy (`type_of_single_agent_io`: ipilimumab, nivolumab, pembrolizumab). Additionally, count the number of patients for each type of best response (`best_response_to_ipi`, `best_response_to_nivo_p`, `best_response_to_pembro`) separately.
 
 *Hint: Use `prior_treatment` instrument.*
+:::
 
-::: {.callout-caution collapse="true" title="Solution"}
-
+::: {.callout-important collapse="true" title="Solution" icon="false"}
 ```{r}
 #| eval: false
 immuno_dataset$redcap_data$prior_treatment |> count(type_of_single_agent_io)
 ```
-
 
 ```{r}
 #| eval: false
@@ -1712,16 +1915,11 @@ immuno_dataset$redcap_data$prior_treatment |> count(best_response_to_nivo)
 #| eval: false
 immuno_dataset$redcap_data$prior_treatment |> count(best_response_to_pembro)
 ```
-
 :::
-
-:::
-
 
 # Visualising Data
 
 `ggplot2` package simplifies the creation of plots. This package offers a streamlined interface for defining variables to plot, configuring their display, and adjusting visual attributes. Consequently, adapting to changes in the data or transitioning between plot types requires only minimal modifications. This feature facilitates the creation of high-quality plots suitable for publication with minimal manual adjustments.
-
 
 If you've already installed the tidyverse package (if not, you can do so by running the command: `install.packages("tidyverse")`), let's proceed to load it into our R session first:
 
@@ -1744,7 +1942,7 @@ The construction of ggplot graphics is incremental, allowing for the addition of
 
 To build a ggplot, the following basic templates can be used for different types of plots.
 
-![](images/ggplot.png) 
+![](images/ggplot.png)
 
 Three things are required for a ggplot:
 
@@ -1778,6 +1976,7 @@ This results in a plot which includes the grid lines, the variables and the scal
 ### 3. Geometric Representation `geom_()`
 
 Finally, we specify the type of plot (the *geom*). There are different types of geoms:
+
 
 ```{=html}
 <table class="unstyledTable">
@@ -2104,7 +2303,7 @@ Note that some patient samples lack values, leading `ggplot2` to remove those po
 
 ### Adding Shape
 
-Let's add shape to points. 
+Let's add shape to points.
 
 ```{r}
 #| fig-height: 4
@@ -2112,6 +2311,7 @@ Let's add shape to points.
 ggplot(immuno_dataset$redcap_data$demographics, aes(x = weight, y = bmi)) + 
   geom_point(aes(shape = smoking)) 
 ```
+
 Note that some patient samples have not been classified and ggplot has removed those points with missing values for the smoking categories.
 
 Some aesthetics like shape can only be used with categorical variables:
@@ -2128,7 +2328,7 @@ The shape argument allows you to customise the appearance of all data points by 
 
 ![](images/shapes.png){fig-align="center" height="120"}
 
-To use asterix instead of points in the plot: 
+To use asterix instead of points in the plot:
 
 ```{r}
 #| fig-height: 4
@@ -2136,7 +2336,8 @@ To use asterix instead of points in the plot:
 ggplot(immuno_dataset$redcap_data$demographics, aes(x = weight, y = bmi)) + 
   geom_point(shape = 8) 
 ```
-It would be useful to be able to change the shape of all the points. We can do so by setting the size to a single value rather than mapping it to one of the variables in the data set - this has to be done outside the aesthetic mappings (i.e. outside the `aes()` bit) as above. 
+
+It would be useful to be able to change the shape of all the points. We can do so by setting the size to a single value rather than mapping it to one of the variables in the data set - this has to be done outside the aesthetic mappings (i.e. outside the `aes()` bit) as above.
 
 ::: callout-tip
 #### Aesthetic Setting vs. Mapping
@@ -2156,7 +2357,7 @@ ggplot(immuno_dataset$redcap_data$demographics, aes(x = weight, y = bmi)) +
   geom_point(aes(shape = smoking)) 
 ```
 
-The above plots are created with similar code, but have rather different outputs. The first plot **sets** the size to a value and the second plot **maps** (not sets) the size to the three-gene classifier variable. 
+The above plots are created with similar code, but have rather different outputs. The first plot **sets** the size to a value and the second plot **maps** (not sets) the size to the three-gene classifier variable.
 :::
 
 It is usually preferable to use colours to distinguish between different categories but sometimes colour and shape are used together when we want to show which group a data point belongs to in two different categorical variables.
@@ -2181,9 +2382,9 @@ ggplot(immuno_dataset$redcap_data$demographics, aes(x = weight, y = bmi)) +
   geom_point(aes(colour = sex), size = 2)
 ```
 
-Note that here we add the size argument outside of the the aesthetic mapping. 
+Note that here we add the size argument outside of the the aesthetic mapping.
 
-Size is not usually a good aesthetic to map to a variable and hence is not advised. 
+Size is not usually a good aesthetic to map to a variable and hence is not advised.
 
 ```{r}
 #| fig-align: center
@@ -2196,7 +2397,7 @@ Because this value is discrete, the default size scale uses evenly spaced sizes 
 
 Transparency can be useful when we have a large number of points as we can more easily tell when points are overlaid, but like size, it is not usually mapped to a variable and sits outside the `aes()`.
 
-Let's change the transparency of points. 
+Let's change the transparency of points.
 
 ```{r}
 #| fig-height: 4
@@ -2207,10 +2408,9 @@ ggplot(immuno_dataset$redcap_data$demographics, aes(x = weight, y = bmi)) +
 
 ### Adding Layers {#sec-adding-layers}
 
-We can add another *layer* to this plot using a different geometric representation (or `geom_` function) we discussed previously. 
+We can add another *layer* to this plot using a different geometric representation (or `geom_` function) we discussed previously.
 
 Let's add trend lines to this plot using the `geom_smooth()` function which provide a summary of the data.
-
 
 ```{r}
 #| fig-align: center
@@ -2237,7 +2437,7 @@ Geom layers specified earlier in the command are drawn first, preceding subseque
 
 If you switch the order of the `geom_point()` and `geom_smooth()` functions above, you'll notice a change in the regression line. Specifically, the regression line will now be plotted underneath the points.
 
-Let’s make the plot look a bit prettier by reducing the size of the points and making them transparent. We’re not mapping size or alpha to any variables, just setting them to constant values, and we only want these settings to apply to the points, so we set them inside `geom_point()`.
+Let's make the plot look a bit prettier by reducing the size of the points and making them transparent. We're not mapping size or alpha to any variables, just setting them to constant values, and we only want these settings to apply to the points, so we set them inside `geom_point()`.
 
 ```{r}
 #| fig-height: 4
@@ -2268,7 +2468,8 @@ ggplot(immuno_dataset$redcap_data$demographics, aes(x = weight, y = bmi)) +
   geom_point(aes(colour = smoking), size = 0.5, alpha = 0.5) +
   geom_smooth() 
 ```
-In the left plot, since we specified the colour (i.e., `colour = smoking`) inside the `ggplot()` function, the `geom_smooth()` function will fit regression lines for each type of ER status and will have coloured regression lines as shown above. This is because, when aesthetic mappings are defined in `ggplot()`, at the global level, they’re passed down to each of the subsequent geom layers of the plot.
+
+In the left plot, since we specified the colour (i.e., `colour = smoking`) inside the `ggplot()` function, the `geom_smooth()` function will fit regression lines for each type of ER status and will have coloured regression lines as shown above. This is because, when aesthetic mappings are defined in `ggplot()`, at the global level, they're passed down to each of the subsequent geom layers of the plot.
 
 If we want to add colour only to the points and fit a regression line across all points, we could specify the colour inside `geom_point()` function (i.e., right plot).
 :::
@@ -2307,14 +2508,72 @@ weight_vs_bmi <- ggplot(immuno_dataset$redcap_data$demographics, aes(x = weight,
 weight_vs_bmi + theme_bw()
 ```
 
-Try these themes yourselves: `theme_classic()`, `theme_dark()`, `theme_grey()` (default), `theme_light()`, `theme_linedraw()`, `theme_minimal()`, `theme_void()` and `theme_test()`. 
+Try these themes yourselves: `theme_classic()`, `theme_dark()`, `theme_grey()` (default), `theme_light()`, `theme_linedraw()`, `theme_minimal()`, `theme_void()` and `theme_test()`.
+
+::: {.callout-warning icon="false" title="Try It Yourself"}
+Given the `cortisol_mort_time` data frame, complete the following tasks:
+
+1.  Print the data frame to explore its contents.
+2.  Create a scatter plot of cortisol levels versus melanoma treatment time.
+3.  Color the points by melanoma type.
+4.  Set the point size to 2 and adjust transparency to 0.7.
+5.  Add a single regression line for all points.
+6.  Include a plot title and label the axes as:
+    -   Y-axis: Cortisol (nmol/L)
+    -   X-axis: Time since first treatment dose (months)
+7.  Apply the `theme_grey()` for styling.
+
+```{r}
+#| warning: false
+# Extract cortisol values from the pathology instrument,
+# keeping only patient ID and cortisol, and remove rows with missing cortisol values
+cortisol <- immuno_dataset$redcap_data$pathology |> 
+  select(record_id, cortisol) |> 
+  filter(!is.na(cortisol))
+
+# Join cortisol data with mortality_data instrument to bring in mortality_treatment_time,
+# and keep only relevant columns: patient ID, mortality treatment time, and cortisol
+cortisol_mort_time <- left_join(cortisol, immuno_dataset$redcap_data$mortality_data) |> 
+  select(record_id, mortality_treatment_time, cortisol)
+
+# Extract melanoma type information from the melanoma_data instrument
+mel_subset <- immuno_dataset$redcap_data$melanoma_data |> select(record_id, melanoma_type)
+
+# Join melanoma type to the existing cortisol_mort_time data
+cortisol_mort_time <- left_join(cortisol_mort_time, mel_subset)
+```
+:::
+
+::: {.callout-important collapse="true" icon="false" title="Solution"}
+1.  
+
+```{r}
+#| eval: false
+cortisol_mort_time
+```
+
+2.-7.
+
+```{r}
+#| eval: false
+ggplot(cortisol_mort_time, aes(x = mortality_treatment_time, y = cortisol)) + 
+  geom_point(aes(colour = melanoma_type), size = 2, alpha = 0.7) +
+  geom_smooth() +
+  labs(
+    title = "Cortisol vs Time since first treatment dose",
+    y = "Cortisol (nmol/L)",
+    x = "Time since first treatment dose (months)",
+    colour = "Melanoma Type" # legend title
+  ) + 
+  theme_grey()
+```
+:::
 
 ## Bar chart
 
 Let's create a bar chart of the number of patients based on different melanoma type in `melanoma_data` instrument.
 
-The `geom_bar` is the geom used to plot bar charts. It requires a single aesthetic mapping of the
-categorical variable of interest to `x`.
+The `geom_bar` is the geom used to plot bar charts. It requires a single aesthetic mapping of the categorical variable of interest to `x`.
 
 ```{r bar_plot_1}
 #| fig-align: center
@@ -2323,8 +2582,7 @@ ggplot(immuno_dataset$redcap_data$melanoma_data) +
   geom_bar(aes(x = melanoma_type))
 ```
 
-The dark grey bars are a big ugly - what if we want each bar to be a different
-colour?
+The dark grey bars are a big ugly - what if we want each bar to be a different colour?
 
 ```{r}
 #| fig-align: center
@@ -2386,12 +2644,30 @@ ggplot(immuno_dataset$redcap_data$melanoma_data) +
 
 Setting this inside the `aes()` mapping told ggplot2 to map the colour aesthetic to some variable in the data frame, one that doesn't really exist but which is created on-the-fly with a value of "blue" for every observation.
 
+::: {.callout-warning icon="false" title="Try It Yourself"}
+Create a horizontal bar chart displaying the types of immune checkpoint inhibition therapies. Add appropriate axis labels and a descriptive title.
+
+*Hint: use `prior_treatment` instrument.*
+:::
+
+::: {.callout-important collapse="true" icon="false" title="Solution"}
+```{r}
+#| eval: false
+ggplot(immuno_dataset$redcap_data$prior_treatment, aes(y = systemic_ici)) +
+  geom_bar() +
+  labs(
+    title = "Immune Checkpoint Inhibition Therapy Counts",
+    x = "Counts",
+    y = "Immune Checkpoint Inhibition Therapy Type"
+  )
+```
+:::
+
 ## Box plot
 
-Box plots (or *box & whisker plots*) are a particular favourite seen in many seminars and papers. Box plots summarise the distribution of a set of values by displaying the minimum and maximum values, the median (i.e. middle-ranked value), and the range of the middle 50% of values (inter-quartile range). The whisker line extending above and below the IQR box define Q3 + (1.5 x IQR), and Q1 - (1.5 x IQR) respectively. 
+Box plots (or *box & whisker plots*) are a particular favourite seen in many seminars and papers. Box plots summarise the distribution of a set of values by displaying the minimum and maximum values, the median (i.e. middle-ranked value), and the range of the middle 50% of values (inter-quartile range). The whisker line extending above and below the IQR box define Q3 + (1.5 x IQR), and Q1 - (1.5 x IQR) respectively.
 
-![](https://miro.medium.com/max/18000/1*2c21SkzJMf3frPXPAR_gZA.png)
-To create a box plot from immuno dataset:
+![](https://miro.medium.com/max/18000/1*2c21SkzJMf3frPXPAR_gZA.png) To create a box plot from immuno dataset:
 
 ```{r}
 #| fig-align: center
@@ -2419,9 +2695,28 @@ ggplot(mel_mort, aes(x = melanoma_type, y = mortality_treatment_time, color = me
   geom_boxplot() 
 ```
 
+::: {.callout-warning icon="false" title="Try It Yourself"}
+Create a box plot showing the duration of response to BRAF/MEK inhibitors by type of BRAF/MEK therapy. Make sure to include appropriate axis labels.
+
+*Hint: use `prior_treatment` instrument.*
+:::
+
+::: {.callout-important collapse="true" icon="false" title="Solution"}
+```{r}
+#| eval: false
+ggplot(immuno_dataset$redcap_data$prior_treatment, 
+       aes(x = braf_mek, y = dur_braf_mek)) +
+  geom_boxplot() + 
+  labs(
+    x = "Type of BRAF/ MEK",
+    y = "Duration of Response to BRAF/MEK inhibitor (months)"
+  )
+```
+:::
+
 ## Violin plot
 
-A *violin plot* is used to visualise the distribution of a numeric variable across different categories. It combines aspects of a box plot and a kernel density plot. 
+A *violin plot* is used to visualise the distribution of a numeric variable across different categories. It combines aspects of a box plot and a kernel density plot.
 
 The width of the violin at any given point represents the density of data at that point. Wider sections indicate a higher density of data points, while narrower sections indicate lower density. By default, violin plots are symmetric.
 
@@ -2431,6 +2726,25 @@ The width of the violin at any given point represents the density of data at tha
 ggplot(mel_mort, aes(x = melanoma_type, y = mortality_treatment_time, color = melanoma_type)) +
     geom_violin()
 ```
+
+::: {.callout-warning icon="false" title="Try It Yourself"}
+Create a violin plot showing the time from commencing treatment to best response by type of best response to PET. Make sure to include appropriate axis labels.
+
+*Hint: use `response_data` instrument.*
+:::
+
+::: {.callout-important collapse="true" icon="false" title="Solution"}
+```{r}
+#| eval: false
+ggplot(immuno_dataset$redcap_data$response_data, 
+       aes(y = time_to_best_response, x = best_res_pet)) +
+  geom_violin() + 
+  labs(
+    x = "Best response on PET",
+    y = "Time from commencing treatment to best response (days)"
+  )
+```
+:::
 
 ## Histogram
 
@@ -2443,8 +2757,7 @@ ggplot(immuno_dataset$redcap_data$response_data) +
   geom_histogram(aes(x = time_to_best_response))
 ```
 
-The warning message hints at picking a more optimal number of bins by specifying
-the `binwidth` argument.
+The warning message hints at picking a more optimal number of bins by specifying the `binwidth` argument.
 
 ```{r}
 #| fig-align: center
@@ -2462,8 +2775,7 @@ ggplot(immuno_dataset$redcap_data$response_data) +
   geom_histogram(aes(x = time_to_best_response), bins = 20)
 ```
 
-These histograms are not very pleasing, aesthetically speaking - how about some
-better aesthetics?
+These histograms are not very pleasing, aesthetically speaking - how about some better aesthetics?
 
 ```{r}
 #| fig-align: center
@@ -2476,6 +2788,23 @@ ggplot(immuno_dataset$redcap_data$response_data) +
     fill = "grey")
 ```
 
+::: {.callout-warning icon="false" title="Try It Yourself"}
+Create a histogram of pituitary size using data from the `ctmri_imaging` instrument. Add color to the bars and a distinct color to the borders. Include clear and appropriate axis labels.
+:::
+
+::: {.callout-important collapse="true" icon="false" title="Solution"}
+```{r}
+#| eval: false
+ggplot(immuno_dataset$redcap_data$ctmri_imaging, 
+       aes(x = pit_size)) +
+  geom_histogram(binwidth = 1, colour = "darkgreen", fill = "lightgreen") + 
+  labs(
+    x = "Pituitary size (mm)",
+    y = "Counts"
+  )
+```
+:::
+
 ## Density plot
 
 Density plots are used to visualise the distribution of a continuous variable in a dataset. These are essentially smoothed histograms, where the area under the curve for each sub-group will sum to 1. This allows us to compare sub-groups of different size.
@@ -2486,7 +2815,6 @@ Density plots are used to visualise the distribution of a continuous variable in
 ggplot(immuno_dataset$redcap_data$response_data) +
   geom_density(aes(x = time_to_best_response, colour = best_res_pet))
 ```
-
 
 ## Saving plot images
 
@@ -2504,4 +2832,27 @@ ggsave("time_to_best_response_density_plot.pdf", width = 20, height = 12, units 
 
 You can also pass in a plot object you have created instead of using the last plot displayed. See the help page (`?ggsave`) for more details.
 
+::: {.callout-warning icon="false" title="Try It Yourself"}
+Assign the variable name `cortisol_mort_time_plt` to the scatter plot you created before. Save this plot as a jpeg file.
+:::
 
+::: {.callout-important collapse="true" icon="false" title="Solution"}
+```{r}
+#| eval: false
+cortisol_mort_time_plt <- ggplot(cortisol_mort_time, aes(x = mortality_treatment_time, y = cortisol)) + 
+  geom_point(aes(colour = melanoma_type), size = 2, alpha = 0.7) +
+  geom_smooth() +
+  labs(
+    title = "Cortisol vs Time since first treatment dose",
+    y = "Cortisol (nmol/L)",
+    x = "Time since first treatment dose (months)",
+    colour = "Melanoma Type" # legend title
+  ) + 
+  theme_grey()
+```
+
+```{r}
+#| eval: false
+ggsave(plot = cortisol_mort_time_plt, filename = "cortisol_vs_mort_time_plot.jpeg")
+```
+:::
