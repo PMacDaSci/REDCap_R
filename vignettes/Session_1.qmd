@@ -540,6 +540,69 @@ sum
 ```
 :::
 
+
+## The Pipe Operator (`|>` or `%>%`)
+
+The *pipe* operator (`|>`) is a commonly used feature of the tidyverse. It was originally defined in the (cleverly named) magrittr package, but is also included in the `dplyr`, tidyverse packages. The `|>` symbol can seem confusing and intimidating at first. However, once you understand the basic idea, it can become addicting!
+
+We suggest you use a shortcut: <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd> (Mac) or <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd> (Windows/Linux).
+
+The `|>` symbol is placed between a value on the left and a function on the right. The `|>` simply takes the value to the left and passes it to the function on the right as the first argument. It acts as a "pipe". That's it!
+
+Suppose we have a variable, `x`.
+
+```{r}
+x <- 7
+```
+
+The following are the exact same.
+
+```{r}
+sqrt(x)
+```
+
+```{r}
+x |> sqrt()
+```
+
+We'll continue to use `|>` throughout this tutorial to show how useful it can be for chaining various data manipulation steps during an analysis.
+
+### Chaining functions
+
+R *chaining* allows you to streamline your data analysis workflow by sequentially applying multiple operations to your data using the pipe operator `|>`. We often need to perform several data manipulation or analysis operations in a sequence. Chaining allows you to apply these operations one after the other in a clear and concise manner.
+
+Here's a basic template for chaining operations using the pipe operator `|>`:
+
+```{r}
+#| eval: false
+result <- data |>
+    operation1(...) |>
+    operation2(...) |>
+    operation3(...) |>
+    ...
+    operationN(...)
+```
+
+In this template:
+
+-   `data` represents the input data frame or object.
+-   `operation1`, `operation2`, ..., `operationN` represent the functions or operations you want to apply sequentially to the data.For example: `select()`, `filter()` or `mutate()` functions.
+-   `...` represents any additional arguments or parameters that may be passed to each operation.
+
+Each operation takes the output of the previous operation as its input, making it easy to chain multiple operations together. This improves the readability of your code by organising operations in a left-to-right fashion and it avoids creating intermediate variables to store the results of each operation.
+
+:::{.callout-warning icon="false" title = "Try It Yourself" }
+
+Find the sum of log square root values of the sequence 10, 20, 30, ..., 100 by chaining functions.
+
+:::
+
+::: {.callout-important collapse="true" title="Solution" icon="false"}
+```{r}
+seq(10, 100, 10) |> sqrt() |> log() |> sum()
+```
+:::
+
 ## Clearing the Environment
 
 Take a look at the objects you have created in your workspace that is accumulated in the environment pane in the upper right corner of RStudio.
@@ -611,6 +674,10 @@ This dataset contains 15 instruments or forms namely: Demographics, Melanoma Dat
 ## REDCap API
 
 **REDCap** (Research Electronic Data Capture) provides an Application Programming Interface (API) that allows users to programmatically access and interact with their project data. The API enables automation of data retrieval, updates, and exports, reducing manual effort and ensuring reproducibility in data analysis.
+
+::: {.callout-note title="Peter Mac REDCap Instance"}
+[https://redcap.petermac.org.au](https://redcap.petermac.org.au)
+:::
 
 ### What is the REDCap API?
 
@@ -796,13 +863,18 @@ Once you have set up your API token securely, you can use R to retrieve data dir
 ### Reading REDCap Data
 
 ```{r}
+#| warning: false
+# If this fails, run install.packages("REDCapR") or 
+# remotes::install_github(repo="OuhscBbmc/REDCapR")
 requireNamespace("REDCapR")
-# If this fails, run install.packages("REDCapR") or remotes::install_github(repo="OuhscBbmc/REDCapR")
 ```
 
 #### Set project-wide values
 
-There is some information that is specific to the REDCap project, as opposed to an individual operation. This includes: 1. the uniform resource identifier (uri) of the server 2. the token for the user's project.
+There is some information that is specific to the REDCap project, as opposed to an individual operation. This includes: 
+
+1. the uniform resource identifier (uri) of the server 
+2. the token for the user's project.
 
 ```{r}
 library(REDCapR)
@@ -836,7 +908,7 @@ Pass an array (where each element is a record ID) to the records parameter:
 #| warning: false
 
 # Define the specific records to retrieve
-selected_records <- c(985, 990, 1005)  # Replace with actual record IDs
+selected_records <- c(385, 490, 500)  # Replace with actual record IDs
 
 # Read only the selected records
 immuno_some_records <- redcap_read(
@@ -915,6 +987,7 @@ Unlike `REDCapR`, which returns a single large dataframe, `REDCapTidieR` automat
 Before using `REDCapTidieR`, ensure it is installed along with its dependencies:
 
 ```{r}
+#| warning: false
 # If this fails, run install.packages("REDCapTidieR") or
 # devtools::install_github("CHOP-CGTInformatics/REDCapTidieR")
 requireNamespace("REDCapTidieR")
@@ -1071,45 +1144,6 @@ labelled::look_for(demographics, "autoimmune")
 ```
 
 This remove all colons in labels.
-
-To removing trailing `:` characters from a field label `REDCapTidieR` provides a format helper function that you can pass to the `format_labels` argument:
-
-```{r}
-fmt_strip_trailing_colon("Select Autoimmune Disease(s) Other, specify:")
-```
-
-To find out about other helpers included with REDCapTidieR, see `` ?`format-helpers` ``.
-
-The `format_labels` argument will also accept multiple functions in a vector or list. You can pass any function that takes a character vector and returns a modified character vector to `format_labels`. In the following example, we remove the trailing colon with `fmt_strip_trailing_colon()` and then make the labels lower case with `base::tolower()`.
-
-```{r}
-#| eval: false
-immuno |>
-  make_labelled(
-    format_labels = c(
-      fmt_strip_trailing_colon,
-      base::tolower
-    )
-  ) |>
-  bind_tibbles()
-
-labelled::look_for(demographics)
-```
-
-```{r}
-#| classes: scrolling
-#| echo: false
-immuno |>
-  make_labelled(
-    format_labels = c(
-      fmt_strip_trailing_colon,
-      base::tolower
-    )
-  ) |>
-  bind_tibbles()
-
-labelled::look_for(demographics)
-```
 
 :::{.callout-warning icon="false" title = "Try It Yourself" }
 
@@ -1367,68 +1401,6 @@ response_data_10 <- head(response_data_df$redcap_data[[1]], 10)
 ```{r}
 #| eval: false
 write_csv(response_data_10, "~/Downloads/immuno_response_data_10.csv")
-```
-:::
-
-## The Pipe Operator (`|>` or `%>%`)
-
-The *pipe* operator (`|>`) is a commonly used feature of the tidyverse. It was originally defined in the (cleverly named) magrittr package, but is also included in the `dplyr`, tidyverse packages. The `|>` symbol can seem confusing and intimidating at first. However, once you understand the basic idea, it can become addicting!
-
-We suggest you use a shortcut: <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd> (Mac) or <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd> (Windows/Linux).
-
-The `|>` symbol is placed between a value on the left and a function on the right. The `|>` simply takes the value to the left and passes it to the function on the right as the first argument. It acts as a "pipe". That's it!
-
-Suppose we have a variable, `x`.
-
-```{r}
-x <- 7
-```
-
-The following are the exact same.
-
-```{r}
-sqrt(x)
-```
-
-```{r}
-x |> sqrt()
-```
-
-We'll continue to use `|>` throughout this tutorial to show how useful it can be for chaining various data manipulation steps during an analysis.
-
-### Chaining functions
-
-R *chaining* allows you to streamline your data analysis workflow by sequentially applying multiple operations to your data using the pipe operator `|>`. We often need to perform several data manipulation or analysis operations in a sequence. Chaining allows you to apply these operations one after the other in a clear and concise manner.
-
-Here's a basic template for chaining operations using the pipe operator `|>`:
-
-```{r}
-#| eval: false
-result <- data |>
-    operation1(...) |>
-    operation2(...) |>
-    operation3(...) |>
-    ...
-    operationN(...)
-```
-
-In this template:
-
--   `data` represents the input data frame or object.
--   `operation1`, `operation2`, ..., `operationN` represent the functions or operations you want to apply sequentially to the data.For example: `select()`, `filter()` or `mutate()` functions.
--   `...` represents any additional arguments or parameters that may be passed to each operation.
-
-Each operation takes the output of the previous operation as its input, making it easy to chain multiple operations together. This improves the readability of your code by organising operations in a left-to-right fashion and it avoids creating intermediate variables to store the results of each operation.
-
-:::{.callout-warning icon="false" title = "Try It Yourself" }
-
-Find the sum of log square root values of the sequence 10, 20, 30, ..., 100 by chaining functions.
-
-:::
-
-::: {.callout-important collapse="true" title="Solution" icon="false"}
-```{r}
-seq(10, 100, 10) |> sqrt() |> log() |> sum()
 ```
 :::
 
