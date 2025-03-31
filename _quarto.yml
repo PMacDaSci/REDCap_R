@@ -9,7 +9,7 @@ website:
       - href: index.html
         text: Home
       - text: Workshop Materials
-        href: vignettes/Session_1.html
+        href: vignettes/Materials.html
 format:
   html:
     theme: 
